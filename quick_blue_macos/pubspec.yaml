@@ -1,4 +1,4 @@
-name: quick_blue
+name: quick_blue_macos
 description: A new flutter plugin project.
 version: 0.0.1
 author:
@@ -13,8 +13,6 @@ dependencies:
     sdk: flutter
   quick_blue_platform_interface:
     path: ../quick_blue_platform_interface
-  quick_blue_macos:
-    path: ../quick_blue_macos
 
 dev_dependencies:
   flutter_test:
@@ -31,13 +29,8 @@ flutter:
   # adding or updating assets for this project.
   plugin:
     platforms:
-      android:
-        package: com.example.quick_blue
-        pluginClass: QuickBluePlugin
-      ios:
-        pluginClass: QuickBluePlugin
       macos:
-        default_package: quick_blue_macos
+        pluginClass: QuickBluePlugin
 
   # To add assets to your plugin package, add an assets section, like this:
   # assets:
