@@ -11,6 +11,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  quick_blue_platform_interface:
+    path: ../quick_blue_platform_interface
 
 dev_dependencies:
   flutter_test:
