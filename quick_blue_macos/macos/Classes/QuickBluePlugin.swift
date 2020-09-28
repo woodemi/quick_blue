@@ -1,10 +1,10 @@
 import Cocoa
 import FlutterMacOS
 
-public class QuickBluePlugin: NSObject, FlutterPlugin {
+public class QuickBlueMacosPlugin: NSObject, FlutterPlugin {
   public static func register(with registrar: FlutterPluginRegistrar) {
     let channel = FlutterMethodChannel(name: "quick_blue", binaryMessenger: registrar.messenger)
-    let instance = QuickBluePlugin()
+    let instance = QuickBlueMacosPlugin()
     registrar.addMethodCallDelegate(instance, channel: channel)
   }
 
