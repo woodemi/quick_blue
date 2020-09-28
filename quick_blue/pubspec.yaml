@@ -13,6 +13,8 @@ dependencies:
     sdk: flutter
   quick_blue_platform_interface:
     path: ../quick_blue_platform_interface
+  quick_blue_macos:
+    path: ../quick_blue_macos
 
 dev_dependencies:
   flutter_test:
@@ -34,6 +36,8 @@ flutter:
         pluginClass: QuickBluePlugin
       ios:
         pluginClass: QuickBluePlugin
+      macos:
+        default_package: quick_blue_macos
 
   # To add assets to your plugin package, add an assets section, like this:
   # assets:
