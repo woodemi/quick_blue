@@ -48,4 +48,4 @@ jobs:
           git clean -xdf; git fetch; git checkout -b master
           flutter config --enable-windows-desktop
           cd -
-      - run: cd quick_blue_example && flutter packages get && flutter build windows
+      - run: cd quick_blue_example && flutter packages get && flutter build windows -v
