@@ -2,9 +2,8 @@
 
 // This must be included before many other Windows headers.
 #include <windows.h>
-
-// For getPlatformVersion; remove unless needed for your plugin implementation.
-#include <VersionHelpers.h>
+#include <winrt/Windows.Foundation.h>
+#include <winrt/Windows.Devices.Bluetooth.Advertisement.h>
 
 #include <flutter/method_channel.h>
 #include <flutter/plugin_registrar_windows.h>
@@ -15,6 +14,10 @@
 #include <sstream>
 
 namespace {
+
+using namespace winrt;
+using namespace Windows::Foundation;
+using namespace Windows::Devices::Bluetooth::Advertisement;
 
 class QuickBlueWindowsPlugin : public flutter::Plugin {
  public:
@@ -29,6 +32,10 @@ class QuickBlueWindowsPlugin : public flutter::Plugin {
   void HandleMethodCall(
       const flutter::MethodCall<flutter::EncodableValue> &method_call,
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result);
+
+  BluetoothLEAdvertisementWatcher bluetoothLEWatcher{ nullptr };
+  event_token bluetoothLEWatcherReceivedToken;
+  void BluetoothLEWatcher_Received(BluetoothLEAdvertisementWatcher sender, BluetoothLEAdvertisementReceivedEventArgs args);
 };
 
 // static
@@ -56,26 +63,30 @@ QuickBlueWindowsPlugin::~QuickBlueWindowsPlugin() {}
 void QuickBlueWindowsPlugin::HandleMethodCall(
     const flutter::MethodCall<flutter::EncodableValue> &method_call,
     std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
-  // Replace "getPlatformVersion" check with your plugin's method.
-  // See:
-  // https://github.com/flutter/engine/tree/master/shell/platform/common/cpp/client_wrapper/include/flutter
-  // and
-  // https://github.com/flutter/engine/tree/master/shell/platform/glfw/client_wrapper/include/flutter
-  // for the relevant Flutter APIs.
-  if (method_call.method_name().compare("getPlatformVersion") == 0) {
-    std::ostringstream version_stream;
-    version_stream << "Windows ";
-    if (IsWindows10OrGreater()) {
-      version_stream << "10+";
-    } else if (IsWindows8OrGreater()) {
-      version_stream << "8";
-    } else if (IsWindows7OrGreater()) {
-      version_stream << "7";
+  auto methodName = method_call.method_name();
+  if (methodName.compare("startScan") == 0) {
+    if (!bluetoothLEWatcher) {
+      bluetoothLEWatcher = BluetoothLEAdvertisementWatcher();
+      bluetoothLEWatcherReceivedToken = bluetoothLEWatcher.Received({ this, &QuickBlueWindowsPlugin::BluetoothLEWatcher_Received });
     }
-    result->Success(flutter::EncodableValue(version_stream.str()));
+    bluetoothLEWatcher.Start();
+    result->Success(nullptr);
+  } else if (methodName.compare("stopScan") == 0) {
+    if (bluetoothLEWatcher) {
+      bluetoothLEWatcher.Stop();
+      bluetoothLEWatcher.Received(bluetoothLEWatcherReceivedToken);
+    }
+    bluetoothLEWatcher = nullptr;
+    result->Success(nullptr);
   } else {
     result->NotImplemented();
   }
+}
+
+void QuickBlueWindowsPlugin::BluetoothLEWatcher_Received(
+    BluetoothLEAdvertisementWatcher sender,
+    BluetoothLEAdvertisementReceivedEventArgs args) {
+  OutputDebugString(L"BluetoothLEWatcher_Received\n");
 }
 
 }  // namespace
