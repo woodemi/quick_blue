@@ -1,3 +1,4 @@
+import CoreBluetooth
 import Flutter
 import UIKit
 
@@ -7,8 +8,34 @@ public class SwiftQuickBluePlugin: NSObject, FlutterPlugin {
     let instance = SwiftQuickBluePlugin()
     registrar.addMethodCallDelegate(instance, channel: channel)
   }
+    
+  private var manager: CBCentralManager!
+
+  override init() {
+    super.init()
+    manager = CBCentralManager(delegate: self, queue: nil)
+  }
 
   public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
-    result("iOS " + UIDevice.current.systemVersion)
+    switch call.method {
+    case "startScan":
+      manager.scanForPeripherals(withServices: nil)
+      result(nil)
+    case "stopScan":
+      manager.stopScan()
+      result(nil)
+    default:
+      result(FlutterMethodNotImplemented)
+    }
+  }
+}
+
+extension SwiftQuickBluePlugin: CBCentralManagerDelegate {
+  public func centralManagerDidUpdateState(_ central: CBCentralManager) {
+    print("centralManagerDidUpdateState \(central.state.rawValue)")
+  }
+
+  public func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String: Any], rssi RSSI: NSNumber) {
+    print("centralManager:didDiscoverPeripheral")
   }
 }
