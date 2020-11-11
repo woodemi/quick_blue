@@ -1,13 +1,18 @@
 package com.example.quick_blue
 
+import android.bluetooth.BluetoothManager
+import android.bluetooth.le.ScanCallback
+import android.bluetooth.le.ScanResult
+import android.content.Context
+import android.util.Log
 import androidx.annotation.NonNull
-
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
-import io.flutter.plugin.common.PluginRegistry.Registrar
+
+private const val TAG = "QuickBluePlugin"
 
 /** QuickBluePlugin */
 class QuickBluePlugin: FlutterPlugin, MethodCallHandler {
@@ -20,17 +25,32 @@ class QuickBluePlugin: FlutterPlugin, MethodCallHandler {
   override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
     channel = MethodChannel(flutterPluginBinding.binaryMessenger, "quick_blue")
     channel.setMethodCallHandler(this)
+    init(flutterPluginBinding.applicationContext)
+  }
+
+  override fun onDetachedFromEngine(@NonNull binding: FlutterPlugin.FlutterPluginBinding) {
+    channel.setMethodCallHandler(null)
+  }
+
+  private lateinit var bluetoothManager: BluetoothManager
+
+  private fun init(context: Context) {
+    bluetoothManager = context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
   }
 
   override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {
-    if (call.method == "getPlatformVersion") {
-      result.success("Android ${android.os.Build.VERSION.RELEASE}")
+    if (call.method == "startScan") {
+      bluetoothManager.adapter.bluetoothLeScanner?.startScan(scanCallback)
+    } else if (call.method == "stopScan") {
+      bluetoothManager.adapter.bluetoothLeScanner?.stopScan(scanCallback)
     } else {
       result.notImplemented()
     }
   }
 
-  override fun onDetachedFromEngine(@NonNull binding: FlutterPlugin.FlutterPluginBinding) {
-    channel.setMethodCallHandler(null)
+  private val scanCallback = object : ScanCallback() {
+    override fun onScanResult(callbackType: Int, result: ScanResult) {
+      Log.v(TAG, "onScanResult")
+    }
   }
 }

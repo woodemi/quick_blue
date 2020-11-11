@@ -171,7 +171,6 @@
 				291E48B633E7BCC4BB8458F6 /* Pods-Runner.release.xcconfig */,
 				D924187E25A2AE4D8A4B06D6 /* Pods-Runner.profile.xcconfig */,
 			);
-			name = Pods;
 			path = Pods;
 			sourceTree = "<group>";
 		};
@@ -330,10 +329,10 @@
 			buildActionMask = 2147483647;
 			files = (
 			);
-			inputFileListPaths = (
+			inputPaths = (
 			);
 			name = "[CP] Embed Pods Frameworks";
-			outputFileListPaths = (
+			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;

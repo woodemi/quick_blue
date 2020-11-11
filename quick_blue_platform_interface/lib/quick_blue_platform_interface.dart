@@ -18,5 +18,7 @@ abstract class QuickBluePlatform extends PlatformInterface {
     _instance = instance;
   }
 
-  Future<String> get platformVersion;
+  void startScan();
+
+  void stopScan();
 }

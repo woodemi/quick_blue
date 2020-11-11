@@ -1,14 +1,14 @@
+import Cocoa
 import CoreBluetooth
-import Flutter
-import UIKit
+import FlutterMacOS
 
-public class SwiftQuickBluePlugin: NSObject, FlutterPlugin {
+public class QuickBlueMacosPlugin: NSObject, FlutterPlugin {
   public static func register(with registrar: FlutterPluginRegistrar) {
-    let channel = FlutterMethodChannel(name: "quick_blue", binaryMessenger: registrar.messenger())
-    let instance = SwiftQuickBluePlugin()
+    let channel = FlutterMethodChannel(name: "quick_blue", binaryMessenger: registrar.messenger)
+    let instance = QuickBlueMacosPlugin()
     registrar.addMethodCallDelegate(instance, channel: channel)
   }
-    
+
   private var manager: CBCentralManager!
 
   override init() {
@@ -30,7 +30,7 @@ public class SwiftQuickBluePlugin: NSObject, FlutterPlugin {
   }
 }
 
-extension SwiftQuickBluePlugin: CBCentralManagerDelegate {
+extension QuickBlueMacosPlugin: CBCentralManagerDelegate {
   public func centralManagerDidUpdateState(_ central: CBCentralManager) {
     print("centralManagerDidUpdateState \(central.state.rawValue)")
   }
