@@ -1,3 +1,3 @@
-## 0.0.1
+## 0.1.0 - 2020.11.11
 
-* TODO: Describe initial release.
+* Add `startScan` & `stopScan` for Android/iOS/macOS/Windows
