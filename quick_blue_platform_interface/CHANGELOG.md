@@ -1,3 +1,6 @@
-## [0.0.1] - TODO: Add release date.
+## [0.1.0] - 2020.11.11
 
-* TODO: Describe initial release.
+### QuickBluePlatform
+
+**Scan BLE peripheral**
+- Define `startScan`, `stopScan` for Android/iOS/macOS/Windows
