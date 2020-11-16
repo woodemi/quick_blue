@@ -14,7 +14,8 @@ dependencies:
   quick_blue_platform_interface:
     path: ../quick_blue_platform_interface
   quick_blue_macos: ^0.1.0
-  quick_blue_windows: ^0.1.0
+  quick_blue_windows:
+    path: ../quick_blue_windows
 
 dev_dependencies:
   flutter_test:
