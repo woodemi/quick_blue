@@ -105,9 +105,9 @@ packages:
   quick_blue_macos:
     dependency: transitive
     description:
-      name: quick_blue_macos
-      url: "https://pub.flutter-io.cn"
-    source: hosted
+      path: "../quick_blue_macos"
+      relative: true
+    source: path
     version: "0.1.0"
   quick_blue_platform_interface:
     dependency: transitive
