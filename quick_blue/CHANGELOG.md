@@ -1,3 +1,7 @@
+## 0.1.1 - 2020.11.17
+
+* Add `scanResultStream` for Android/iOS/macOS/Windows
+
 ## 0.1.0 - 2020.11.11
 
 * Add `startScan` & `stopScan` for Android/iOS/macOS/Windows
