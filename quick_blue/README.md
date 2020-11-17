@@ -11,7 +11,11 @@ A cross-platform (Android/iOS/macOS/Windows) BluetoothLE plugin for Flutter
 Android/iOS/macOS/Windows
 
 ```dart
-QuickBlue.startScan();
+QuickBlue.scanResultStream.listen((result) {
+  print('onScanResult $result');
+});
 
+QuickBlue.startScan();
+// ...
 QuickBlue.stopScan();
 ```

@@ -1,3 +1,7 @@
+## 0.1.1+1 - 2020.11.18
+
+* Add `scanResultStream` to README.md
+
 ## 0.1.1 - 2020.11.17
 
 * Add `scanResultStream` for Android/iOS/macOS/Windows
