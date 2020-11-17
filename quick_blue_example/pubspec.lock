@@ -80,7 +80,7 @@ packages:
       name: meta
       url: "https://pub.flutter-io.cn"
     source: hosted
-    version: "1.3.0-nullsafety.3"
+    version: "1.3.0-nullsafety.4"
   path:
     dependency: transitive
     description:
@@ -101,28 +101,28 @@ packages:
       path: "../quick_blue"
       relative: true
     source: path
-    version: "0.1.0"
+    version: "0.1.1"
   quick_blue_macos:
     dependency: transitive
     description:
       path: "../quick_blue_macos"
       relative: true
     source: path
-    version: "0.1.0"
+    version: "0.1.1"
   quick_blue_platform_interface:
     dependency: transitive
     description:
       path: "../quick_blue_platform_interface"
       relative: true
     source: path
-    version: "0.1.0"
+    version: "0.1.1"
   quick_blue_windows:
     dependency: transitive
     description:
-      path: "../quick_blue_windows"
-      relative: true
-    source: path
-    version: "0.1.0"
+      name: quick_blue_windows
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "0.1.1"
   sky_engine:
     dependency: transitive
     description: flutter
@@ -141,7 +141,7 @@ packages:
       name: stack_trace
       url: "https://pub.flutter-io.cn"
     source: hosted
-    version: "1.10.0-nullsafety.1"
+    version: "1.10.0-nullsafety.2"
   stream_channel:
     dependency: transitive
     description:
@@ -185,5 +185,5 @@ packages:
     source: hosted
     version: "2.1.0-nullsafety.3"
 sdks:
-  dart: ">=2.10.0-110 <2.11.0"
+  dart: ">=2.10.0-110 <=2.11.0-213.1.beta"
   flutter: ">=1.20.0 <2.0.0"

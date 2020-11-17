@@ -22,12 +22,14 @@ public class QuickBlueMacosPlugin: NSObject, FlutterPlugin {
   }
 
   private var manager: CBCentralManager!
+  private var discoveredPeripherals: Dictionary<String, CBPeripheral>!
 
   private var scanResultSink: FlutterEventSink?
 
   override init() {
     super.init()
     manager = CBCentralManager(delegate: self, queue: nil)
+    discoveredPeripherals = Dictionary()
   }
 
   public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
@@ -37,6 +39,30 @@ public class QuickBlueMacosPlugin: NSObject, FlutterPlugin {
       result(nil)
     case "stopScan":
       manager.stopScan()
+      result(nil)
+    case "connect":
+      guard let arguments = call.arguments as? Dictionary<String, Any>,
+          let deviceId = arguments["deviceId"] as? String else {
+        result(FlutterMethodNotImplemented)
+        return
+      }
+      guard let peripheral = discoveredPeripherals[deviceId] else {
+        result(FlutterError(code: "IllegalArgument", message: "Unknown deviceId:\(deviceId)", details: nil))
+        return
+      }
+      manager.connect(peripheral)
+      result(nil)
+    case "disconnect":
+      guard let arguments = call.arguments as? Dictionary<String, Any>,
+            let deviceId = arguments["deviceId"] as? String else {
+        result(FlutterMethodNotImplemented)
+        return
+      }
+      guard let peripheral = discoveredPeripherals[deviceId] else {
+        result(FlutterError(code: "IllegalArgument", message: "Unknown deviceId:\(deviceId)", details: nil))
+        return
+      }
+      manager.cancelPeripheralConnection(peripheral)
       result(nil)
     default:
       result(FlutterMethodNotImplemented)
@@ -51,6 +77,7 @@ extension QuickBlueMacosPlugin: CBCentralManagerDelegate {
 
   public func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String: Any], rssi RSSI: NSNumber) {
     print("centralManager:didDiscoverPeripheral \(peripheral.name) \(peripheral.uuid)")
+    discoveredPeripherals[peripheral.uuid.uuidString] = peripheral
 
     let manufacturerData = advertisementData[CBAdvertisementDataManufacturerDataKey] as? Data
     scanResultSink?([
