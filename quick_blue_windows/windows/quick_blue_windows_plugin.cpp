@@ -3,9 +3,13 @@
 // This must be included before many other Windows headers.
 #include <windows.h>
 #include <winrt/Windows.Foundation.h>
+#include <winrt/Windows.Foundation.Collections.h>
+#include <winrt/Windows.Storage.Streams.h>
 #include <winrt/Windows.Devices.Bluetooth.Advertisement.h>
 
 #include <flutter/method_channel.h>
+#include <flutter/event_channel.h>
+#include <flutter/event_stream_handler_functions.h>
 #include <flutter/plugin_registrar_windows.h>
 #include <flutter/standard_method_codec.h>
 
@@ -17,9 +21,27 @@ namespace {
 
 using namespace winrt;
 using namespace Windows::Foundation;
+using namespace Windows::Foundation::Collections;
+using namespace Windows::Storage::Streams;
 using namespace Windows::Devices::Bluetooth::Advertisement;
 
-class QuickBlueWindowsPlugin : public flutter::Plugin {
+using flutter::EncodableValue;
+using flutter::EncodableMap;
+
+union uint16_t_union {
+  uint16_t uint16;
+  byte bytes[sizeof(uint16_t)];
+};
+
+std::vector<uint8_t> to_bytevc(IBuffer buffer)
+{
+  auto reader = DataReader::FromBuffer(buffer);
+  auto result = std::vector<uint8_t>(reader.UnconsumedBufferLength());
+  reader.ReadBytes(result);
+  return result;
+}
+
+class QuickBlueWindowsPlugin : public flutter::Plugin, public flutter::StreamHandler<EncodableValue> {
  public:
   static void RegisterWithRegistrar(flutter::PluginRegistrarWindows *registrar);
 
@@ -33,6 +55,14 @@ class QuickBlueWindowsPlugin : public flutter::Plugin {
       const flutter::MethodCall<flutter::EncodableValue> &method_call,
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result);
 
+  std::unique_ptr<flutter::StreamHandlerError<>> OnListenInternal(
+      const EncodableValue* arguments,
+      std::unique_ptr<flutter::EventSink<>>&& events) override;
+  std::unique_ptr<flutter::StreamHandlerError<>> OnCancelInternal(
+      const EncodableValue* arguments) override;
+
+  std::unique_ptr<flutter::EventSink<EncodableValue>> scan_result_sink_;
+
   BluetoothLEAdvertisementWatcher bluetoothLEWatcher{ nullptr };
   event_token bluetoothLEWatcherReceivedToken;
   void BluetoothLEWatcher_Received(BluetoothLEAdvertisementWatcher sender, BluetoothLEAdvertisementReceivedEventArgs args);
@@ -41,17 +71,35 @@ class QuickBlueWindowsPlugin : public flutter::Plugin {
 // static
 void QuickBlueWindowsPlugin::RegisterWithRegistrar(
     flutter::PluginRegistrarWindows *registrar) {
-  auto channel =
-      std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
-          registrar->messenger(), "quick_blue",
+  auto method =
+      std::make_unique<flutter::MethodChannel<EncodableValue>>(
+          registrar->messenger(), "quick_blue/method",
+          &flutter::StandardMethodCodec::GetInstance());
+  auto event_scan_result =
+      std::make_unique<flutter::EventChannel<EncodableValue>>(
+          registrar->messenger(), "quick_blue/event.scanResult",
           &flutter::StandardMethodCodec::GetInstance());
 
   auto plugin = std::make_unique<QuickBlueWindowsPlugin>();
 
-  channel->SetMethodCallHandler(
+  method->SetMethodCallHandler(
       [plugin_pointer = plugin.get()](const auto &call, auto result) {
         plugin_pointer->HandleMethodCall(call, std::move(result));
       });
+
+  auto handler = std::make_unique<
+      flutter::StreamHandlerFunctions<>>(
+      [plugin_pointer = plugin.get()](
+          const EncodableValue* arguments,
+          std::unique_ptr<flutter::EventSink<>>&& events)
+          -> std::unique_ptr<flutter::StreamHandlerError<>> {
+        return plugin_pointer->OnListen(arguments, std::move(events));
+      },
+      [plugin_pointer = plugin.get()](const EncodableValue* arguments)
+          -> std::unique_ptr<flutter::StreamHandlerError<>> {
+        return plugin_pointer->OnCancel(arguments);
+      });
+  event_scan_result->SetStreamHandler(std::move(handler));
 
   registrar->AddPlugin(std::move(plugin));
 }
@@ -63,15 +111,15 @@ QuickBlueWindowsPlugin::~QuickBlueWindowsPlugin() {}
 void QuickBlueWindowsPlugin::HandleMethodCall(
     const flutter::MethodCall<flutter::EncodableValue> &method_call,
     std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
-  auto methodName = method_call.method_name();
-  if (methodName.compare("startScan") == 0) {
+  auto method_name = method_call.method_name();
+  if (method_name.compare("startScan") == 0) {
     if (!bluetoothLEWatcher) {
       bluetoothLEWatcher = BluetoothLEAdvertisementWatcher();
       bluetoothLEWatcherReceivedToken = bluetoothLEWatcher.Received({ this, &QuickBlueWindowsPlugin::BluetoothLEWatcher_Received });
     }
     bluetoothLEWatcher.Start();
     result->Success(nullptr);
-  } else if (methodName.compare("stopScan") == 0) {
+  } else if (method_name.compare("stopScan") == 0) {
     if (bluetoothLEWatcher) {
       bluetoothLEWatcher.Stop();
       bluetoothLEWatcher.Received(bluetoothLEWatcherReceivedToken);
@@ -83,10 +131,56 @@ void QuickBlueWindowsPlugin::HandleMethodCall(
   }
 }
 
+std::vector<uint8_t> parseManufacturerData(BluetoothLEAdvertisement advertisement)
+{
+  if (advertisement.ManufacturerData().Size() == 0)
+    return std::vector<uint8_t>();
+
+  auto manufacturerData = advertisement.ManufacturerData().GetAt(0);
+  // FIXME Compat with REG_DWORD_BIG_ENDIAN
+  uint8_t* prefix = uint16_t_union{ manufacturerData.CompanyId() }.bytes;
+  auto result = std::vector<uint8_t>{ prefix, prefix + sizeof(uint16_t_union) };
+
+  auto data = to_bytevc(manufacturerData.Data());
+  result.insert(result.end(), data.begin(), data.end());
+  return result;
+}
+
 void QuickBlueWindowsPlugin::BluetoothLEWatcher_Received(
     BluetoothLEAdvertisementWatcher sender,
     BluetoothLEAdvertisementReceivedEventArgs args) {
-  OutputDebugString(L"BluetoothLEWatcher_Received\n");
+  OutputDebugString((L"Received " + to_hstring(args.BluetoothAddress()) + L"\n").c_str());
+  auto manufacturer_data = parseManufacturerData(args.Advertisement());
+  if (scan_result_sink_) {
+    scan_result_sink_->Success(EncodableMap{
+      {"name", winrt::to_string(args.Advertisement().LocalName())},
+      {"deviceId", std::to_string(args.BluetoothAddress())},
+      {"manufacturerData", manufacturer_data},
+      {"rssi", args.RawSignalStrengthInDBm()},
+    });
+  }
+}
+
+std::unique_ptr<flutter::StreamHandlerError<EncodableValue>> QuickBlueWindowsPlugin::OnListenInternal(
+    const EncodableValue* arguments, std::unique_ptr<flutter::EventSink<EncodableValue>>&& events)
+{
+  auto args = std::get<EncodableMap>(*arguments);
+  auto name = std::get<std::string>(args[EncodableValue("name")]);
+  if (name.compare("scanResult") == 0) {
+    scan_result_sink_ = std::move(events);
+  }
+  return nullptr;
+}
+
+std::unique_ptr<flutter::StreamHandlerError<EncodableValue>> QuickBlueWindowsPlugin::OnCancelInternal(
+    const EncodableValue* arguments)
+{
+  auto args = std::get<EncodableMap>(*arguments);
+  auto name = std::get<std::string>(args[EncodableValue("name")]);
+  if (name.compare("scanResult") == 0) {
+      scan_result_sink_ = nullptr;
+  }
+  return nullptr;
 }
 
 }  // namespace

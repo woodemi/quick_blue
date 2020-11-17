@@ -2,14 +2,28 @@ import Cocoa
 import CoreBluetooth
 import FlutterMacOS
 
+extension CBPeripheral {
+  // FIXME https://forums.developer.apple.com/thread/84375
+  public var uuid: UUID {
+    get {
+      value(forKey: "identifier") as! NSUUID as UUID
+    }
+  }
+}
+
 public class QuickBlueMacosPlugin: NSObject, FlutterPlugin {
   public static func register(with registrar: FlutterPluginRegistrar) {
-    let channel = FlutterMethodChannel(name: "quick_blue", binaryMessenger: registrar.messenger)
+    let method = FlutterMethodChannel(name: "quick_blue/method", binaryMessenger: registrar.messenger)
+    let eventScanResult = FlutterEventChannel(name: "quick_blue/event.scanResult", binaryMessenger: registrar.messenger)
+
     let instance = QuickBlueMacosPlugin()
-    registrar.addMethodCallDelegate(instance, channel: channel)
+    registrar.addMethodCallDelegate(instance, channel: method)
+    eventScanResult.setStreamHandler(instance)
   }
 
   private var manager: CBCentralManager!
+
+  private var scanResultSink: FlutterEventSink?
 
   override init() {
     super.init()
@@ -36,6 +50,38 @@ extension QuickBlueMacosPlugin: CBCentralManagerDelegate {
   }
 
   public func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String: Any], rssi RSSI: NSNumber) {
-    print("centralManager:didDiscoverPeripheral")
+    print("centralManager:didDiscoverPeripheral \(peripheral.name) \(peripheral.uuid)")
+
+    let manufacturerData = advertisementData[CBAdvertisementDataManufacturerDataKey] as? Data
+    scanResultSink?([
+      "name": peripheral.name ?? "",
+      "deviceId": peripheral.uuid.uuidString,
+      "manufacturerData": FlutterStandardTypedData(bytes: manufacturerData ?? Data()),
+      "rssi": RSSI,
+    ])
+  }
+}
+
+extension QuickBlueMacosPlugin: FlutterStreamHandler {
+  open func onListen(withArguments arguments: Any?, eventSink events: @escaping FlutterEventSink) -> FlutterError? {
+    guard let args = arguments as? Dictionary<String, Any>, let name = args["name"] as? String else {
+      return nil
+    }
+    print("QuickBlueMacosPlugin onListenWithArguments：\(name)")
+    if name == "scanResult" {
+      scanResultSink = events
+    }
+    return nil
+  }
+
+  open func onCancel(withArguments arguments: Any?) -> FlutterError? {
+    guard let args = arguments as? Dictionary<String, Any>, let name = args["name"] as? String else {
+      return nil
+    }
+    print("QuickBlueMacosPlugin onCancelWithArguments：\(name)")
+    if name == "scanResult" {
+      scanResultSink = nil
+    }
+    return nil
   }
 }
