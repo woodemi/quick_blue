@@ -23,4 +23,8 @@ abstract class QuickBluePlatform extends PlatformInterface {
   void stopScan();
 
   Stream<dynamic> get scanResultStream;
+
+  void connect(String deviceId);
+
+  void disconnect(String deviceId);
 }

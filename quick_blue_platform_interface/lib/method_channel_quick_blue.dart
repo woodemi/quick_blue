@@ -21,4 +21,18 @@ class MethodChannelQuickBlue extends QuickBluePlatform {
 
   @override
   Stream<dynamic> get scanResultStream => _scanResultStream;
+
+  @override
+  void connect(String deviceId) {
+    _method.invokeMethod('connect', {
+      'deviceId': deviceId,
+    }).then((_) => print('connect invokeMethod success'));
+  }
+
+  @override
+  void disconnect(String deviceId) {
+    _method.invokeMethod('disconnect', {
+      'deviceId': deviceId,
+    }).then((_) => print('disconnect invokeMethod success'));
+  }
 }

@@ -1,5 +1,7 @@
 package com.example.quick_blue
 
+import android.bluetooth.BluetoothGatt
+import android.bluetooth.BluetoothGattCallback
 import android.bluetooth.BluetoothManager
 import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanResult
@@ -33,6 +35,7 @@ class QuickBluePlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamHand
     method.setMethodCallHandler(this)
     eventScanResult.setStreamHandler(this)
 
+    context = flutterPluginBinding.applicationContext
     bluetoothManager = flutterPluginBinding.applicationContext.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
   }
 
@@ -43,15 +46,36 @@ class QuickBluePlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamHand
     method.setMethodCallHandler(null)
   }
 
+  private lateinit var context: Context
   private lateinit var bluetoothManager: BluetoothManager
+  private val connectedGatts = mutableListOf<BluetoothGatt>()
 
   override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {
-    if (call.method == "startScan") {
-      bluetoothManager.adapter.bluetoothLeScanner?.startScan(scanCallback)
-    } else if (call.method == "stopScan") {
-      bluetoothManager.adapter.bluetoothLeScanner?.stopScan(scanCallback)
-    } else {
-      result.notImplemented()
+    when (call.method) {
+      "startScan" -> {
+        bluetoothManager.adapter.bluetoothLeScanner?.startScan(scanCallback)
+      }
+      "stopScan" -> {
+        bluetoothManager.adapter.bluetoothLeScanner?.stopScan(scanCallback)
+      }
+      "connect" -> {
+        val deviceId = call.argument<String>("deviceId")
+        val gatt = bluetoothManager.adapter
+                .getRemoteDevice(deviceId)
+                .connectGatt(context, false, gattCallback)
+        connectedGatts.add(gatt)
+        result.success(null)
+      }
+      "disconnect" -> {
+        val deviceId = call.argument<String>("deviceId")
+        val gatt = connectedGatts.find { it.device.address == deviceId }
+        connectedGatts.remove(gatt)
+        gatt?.disconnect()
+        result.success(null)
+      }
+      else -> {
+        result.notImplemented()
+      }
     }
   }
 
@@ -88,6 +112,12 @@ class QuickBluePlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamHand
     val map = args as? Map<String, Any> ?: return
     when (map["name"]) {
       "scanResult" -> scanResultSink = null
+    }
+  }
+
+  private val gattCallback = object : BluetoothGattCallback() {
+    override fun onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int) {
+      Log.v(TAG, "onConnectionStateChange: device(${gatt.device.address}) status($status), newState($newState)")
     }
   }
 }

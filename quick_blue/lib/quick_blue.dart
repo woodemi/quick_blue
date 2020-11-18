@@ -15,4 +15,8 @@ class QuickBlue {
     return QuickBluePlatform.instance.scanResultStream
       .map((item) => BlueScanResult.fromMap(item));
   }
+
+  static void connect(String deviceId) => QuickBluePlatform.instance.connect(deviceId);
+
+  static void disconnect(String deviceId) => QuickBluePlatform.instance.disconnect(deviceId);
 }

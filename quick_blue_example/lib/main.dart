@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:quick_blue/quick_blue.dart';
 
+import 'PeripheralDetailPage.dart';
+
 void main() {
   runApp(MyApp());
 }
@@ -80,6 +82,11 @@ class _MyAppState extends State<MyApp> {
           title:
               Text('${_scanResults[index].name}(${_scanResults[index].rssi})'),
           subtitle: Text(_scanResults[index].deviceId),
+          onTap: () {
+            Navigator.push(context, MaterialPageRoute(
+              builder: (context) => PeripheralDetailPage(_scanResults[index].deviceId),
+            ));
+          },
         ),
         separatorBuilder: (context, index) => Divider(),
         itemCount: _scanResults.length,
