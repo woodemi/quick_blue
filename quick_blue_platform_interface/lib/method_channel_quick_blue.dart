@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/services.dart';
 import 'package:quick_blue_platform_interface/quick_blue_platform_interface.dart';
 
@@ -41,12 +43,27 @@ class MethodChannelQuickBlue extends QuickBluePlatform {
     }).then((_) => print('disconnect invokeMethod success'));
   }
 
+  @override
+  void discoverServices(String deviceId) {
+    _method.invokeMethod('discoverServices', {
+      'deviceId': deviceId,
+    }).then((_) => print('discoverServices invokeMethod success'));
+  }
+
   Future<void> _handleConnectorMessage(dynamic message) {
     print('_handleConnectorMessage $message');
     if (message['ConnectionState'] != null) {
       String deviceId = message['deviceId'];
       BlueConnectionState connectionState = BlueConnectionState.parse(message['ConnectionState']);
       onConnectionChanged?.call(deviceId, connectionState);
+    } else if (message['ServiceState'] != null) {
+      if (message['ServiceState'] == 'discovered') {
+        String deviceId = message['deviceId'];
+        List<dynamic> services = message['services'];
+        for (var s in services) {
+          onServiceDiscovered?.call(deviceId, s);
+        }
+      }
     }
   }
 }

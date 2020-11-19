@@ -22,5 +22,13 @@ class QuickBlue {
 
   static void disconnect(String deviceId) => QuickBluePlatform.instance.disconnect(deviceId);
 
-  static void setConnectionHandler(OnConnectionChanged onConnectionChanged) => QuickBluePlatform.instance.setConnectionHandler(onConnectionChanged);
+  static void setConnectionHandler(OnConnectionChanged onConnectionChanged) {
+    QuickBluePlatform.instance.onConnectionChanged = onConnectionChanged;
+  }
+
+  static void discoverServices(String deviceId) => QuickBluePlatform.instance.discoverServices(deviceId);
+
+  static void setServiceHandler(OnServiceDiscovered onServiceDiscovered) {
+    QuickBluePlatform.instance.onServiceDiscovered = onServiceDiscovered;
+  }
 }

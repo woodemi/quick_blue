@@ -10,6 +10,8 @@ export 'models.dart';
 
 typedef OnConnectionChanged = void Function(String deviceId, BlueConnectionState state);
 
+typedef OnServiceDiscovered = void Function(String deviceId, String serviceId);
+
 abstract class QuickBluePlatform extends PlatformInterface {
   QuickBluePlatform() : super(token: _token);
 
@@ -36,7 +38,7 @@ abstract class QuickBluePlatform extends PlatformInterface {
 
   OnConnectionChanged onConnectionChanged;
 
-  void setConnectionHandler(OnConnectionChanged onConnectionChanged) {
-    this.onConnectionChanged = onConnectionChanged;
-  }
+  void discoverServices(String deviceId);
+
+  OnServiceDiscovered onServiceDiscovered;
 }
