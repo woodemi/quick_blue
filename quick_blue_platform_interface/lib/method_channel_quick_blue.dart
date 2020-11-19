@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:flutter/services.dart';
 import 'package:quick_blue_platform_interface/quick_blue_platform_interface.dart';
@@ -65,5 +66,20 @@ class MethodChannelQuickBlue extends QuickBluePlatform {
         }
       }
     }
+  }
+
+  @override
+  Future<void> writeValue(String deviceId, String service, String characteristic, Uint8List value) {
+    _method.invokeMethod('writeValue', {
+      'deviceId': deviceId,
+      'service': service,
+      'characteristic': characteristic,
+      'value': value,
+    }).then((_) {
+      print('writeValue invokeMethod success');
+    }).catchError((onError) {
+      // Characteristic sometimes unavailable on Android
+      throw onError;
+    });
   }
 }

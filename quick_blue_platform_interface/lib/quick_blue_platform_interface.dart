@@ -1,5 +1,7 @@
 library quick_blue_platform_interface;
 
+import 'dart:typed_data';
+
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
 import 'method_channel_quick_blue.dart';
@@ -41,4 +43,6 @@ abstract class QuickBluePlatform extends PlatformInterface {
   void discoverServices(String deviceId);
 
   OnServiceDiscovered onServiceDiscovered;
+
+  Future<void> writeValue(String deviceId, String service, String characteristic, Uint8List value);
 }
