@@ -55,7 +55,7 @@ class QuickBluePlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamHand
 
   private val knownGatts = mutableListOf<BluetoothGatt>()
 
-  private fun sendMessage(messageChannel: BasicMessageChannel<Any>, message: Map<String, String>) {
+  private fun sendMessage(messageChannel: BasicMessageChannel<Any>, message: Map<String, Any>) {
     mainThreadHandler.post { messageChannel.send(message) }
   }
 
@@ -88,6 +88,13 @@ class QuickBluePlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamHand
         result.success(null)
         //FIXME If `disconnect` is called before BluetoothGatt.STATE_CONNECTED
         // there will be no `disconnected` message any more
+      }
+      "discoverServices" -> {
+        val deviceId = call.argument<String>("deviceId")!!
+        val gatt = knownGatts.find { it.device.address == deviceId }
+                ?: return result.error("IllegalArgument", "Unknown deviceId: $deviceId", null)
+        gatt.discoverServices()
+        result.success(null)
       }
       else -> {
         result.notImplemented()
@@ -145,6 +152,27 @@ class QuickBluePlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamHand
           "ConnectionState" to "disconnected"
         ))
       }
+    }
+
+    override fun onServicesDiscovered(gatt: BluetoothGatt, status: Int) {
+      Log.v(TAG, "onServicesDiscovered ${gatt.device.address} $status")
+      if (status != BluetoothGatt.GATT_SUCCESS) return
+
+      gatt.services?.forEach { service ->
+        Log.v(TAG, "Service " + service.uuid)
+        service.characteristics.forEach { characteristic ->
+          Log.v(TAG, "    Characteristic ${characteristic.uuid}")
+          characteristic.descriptors.forEach {
+            Log.v(TAG, "        Descriptor ${it.uuid}")
+          }
+        }
+      }
+
+      sendMessage(messageConnector, mapOf(
+        "deviceId" to gatt.device.address,
+        "ServiceState" to "discovered",
+        "services" to gatt.services.map { it.uuid.toString() }
+      ))
     }
   }
 }
