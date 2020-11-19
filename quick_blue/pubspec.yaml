@@ -17,6 +17,7 @@ dependencies:
     path: ../quick_blue_macos
   quick_blue_windows:
     path: ../quick_blue_windows
+  convert: ^2.1.1
 
 dev_dependencies:
   flutter_test:

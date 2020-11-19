@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:quick_blue_platform_interface/quick_blue_platform_interface.dart';
 
@@ -30,5 +31,9 @@ class QuickBlue {
 
   static void setServiceHandler(OnServiceDiscovered onServiceDiscovered) {
     QuickBluePlatform.instance.onServiceDiscovered = onServiceDiscovered;
+  }
+
+  static Future<void> writeValue(String deviceId, String service, String characteristic, Uint8List value) {
+    return QuickBluePlatform.instance.writeValue(deviceId, service, characteristic, value);
   }
 }

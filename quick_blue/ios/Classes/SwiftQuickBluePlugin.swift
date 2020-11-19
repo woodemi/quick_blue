@@ -2,6 +2,8 @@ import CoreBluetooth
 import Flutter
 import UIKit
 
+let GSS_SUFFIX = "0000-1000-8000-00805f9b34fb"
+
 extension CBUUID {
   public var uuidStr: String {
     get {
@@ -16,6 +18,16 @@ extension CBPeripheral {
     get {
       value(forKey: "identifier") as! NSUUID as UUID
     }
+  }
+
+  public func getCharacteristic(_ characteristic: String, of service: String) -> CBCharacteristic {
+    let s = self.services?.first {
+      $0.uuid.uuidStr == service || "0000\($0.uuid.uuidStr)-\(GSS_SUFFIX)" == service
+    }
+    let c = s?.characteristics?.first {
+      $0.uuid.uuidStr == characteristic || "0000\($0.uuid.uuidStr)-\(GSS_SUFFIX)" == characteristic
+    }
+    return c!
   }
 }
 
@@ -80,6 +92,18 @@ public class SwiftQuickBluePlugin: NSObject, FlutterPlugin {
         return
       }
       peripheral.discoverServices(nil)
+      result(nil)
+    case "writeValue":
+      let arguments = call.arguments as! Dictionary<String, Any>
+      let deviceId = arguments["deviceId"] as! String
+      let service = arguments["service"] as! String
+      let characteristic = arguments["characteristic"] as! String
+      let value = arguments["value"] as! FlutterStandardTypedData
+      guard let peripheral = discoveredPeripherals[deviceId] else {
+        result(FlutterError(code: "IllegalArgument", message: "Unknown deviceId:\(deviceId)", details: nil))
+        return
+      }
+      peripheral.writeValue(value.data, for: peripheral.getCharacteristic(characteristic, of: service), type: .withResponse)
       result(nil)
     default:
       result(FlutterMethodNotImplemented)

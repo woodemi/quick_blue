@@ -16,6 +16,7 @@ import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+import java.util.*
 
 private const val TAG = "QuickBluePlugin"
 
@@ -95,6 +96,22 @@ class QuickBluePlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamHand
                 ?: return result.error("IllegalArgument", "Unknown deviceId: $deviceId", null)
         gatt.discoverServices()
         result.success(null)
+      }
+      "writeValue" -> {
+        val deviceId = call.argument<String>("deviceId")!!
+        val service = call.argument<String>("service")!!
+        val characteristic = call.argument<String>("characteristic")!!
+        val value = call.argument<ByteArray>("value")!!
+        val gatt = knownGatts.find { it.device.address == deviceId }
+                ?: return result.error("IllegalArgument", "Unknown deviceId: $deviceId", null)
+        val writeResult = gatt.getCharacteristic(service to characteristic)?.let {
+          it.value = value
+          gatt.writeCharacteristic(it)
+        }
+        if (writeResult == true)
+          result.success(null)
+        else
+          result.error("Characteristic unavailable", null, null)
       }
       else -> {
         result.notImplemented()
@@ -187,3 +204,6 @@ val ScanResult.manufacturerData: ByteArray?
 
 fun Short.toByteArray(byteOrder: ByteOrder = ByteOrder.LITTLE_ENDIAN): ByteArray =
         ByteBuffer.allocate(2 /*Short.SIZE_BYTES*/).order(byteOrder).putShort(this).array()
+
+fun BluetoothGatt.getCharacteristic(serviceCharacteristic: Pair<String, String>) =
+        getService(UUID.fromString(serviceCharacteristic.first)).getCharacteristic(UUID.fromString(serviceCharacteristic.second))

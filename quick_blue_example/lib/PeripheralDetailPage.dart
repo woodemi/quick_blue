@@ -1,5 +1,13 @@
+import 'dart:typed_data';
+
+import 'package:convert/convert.dart';
 import 'package:flutter/material.dart';
 import 'package:quick_blue/quick_blue.dart';
+
+const WOODEMI_SUFFIX = 'ba5e-f4ee-5ca1-eb1e5e4b1ce0';
+
+const WOODEMI_SERV__COMMAND = '57444d01-$WOODEMI_SUFFIX';
+const WOODEMI_CHAR__COMMAND_REQUEST = '57444e02-$WOODEMI_SUFFIX';
 
 class PeripheralDetailPage extends StatefulWidget {
   final String deviceId;
@@ -34,6 +42,12 @@ class _PeripheralDetailPageState extends State<PeripheralDetailPage> {
   void _handleServiceDiscovery(String deviceId, String serviceId) {
     print('_handleServiceDiscovery $deviceId, $serviceId');
   }
+
+  final serviceUUID = TextEditingController(text: WOODEMI_SERV__COMMAND);
+  final characteristicUUID =
+      TextEditingController(text: WOODEMI_CHAR__COMMAND_REQUEST);
+  final binaryCode = TextEditingController(
+      text: hex.encode([0x01, 0x0A, 0x00, 0x00, 0x00, 0x01]));
 
   @override
   Widget build(BuildContext context) {
@@ -70,6 +84,33 @@ class _PeripheralDetailPageState extends State<PeripheralDetailPage> {
                 },
               ),
             ],
+          ),
+          TextField(
+            controller: serviceUUID,
+            decoration: InputDecoration(
+              labelText: 'ServiceUUID',
+            ),
+          ),
+          TextField(
+            controller: characteristicUUID,
+            decoration: InputDecoration(
+              labelText: 'CharacteristicUUID',
+            ),
+          ),
+          TextField(
+            controller: binaryCode,
+            decoration: InputDecoration(
+              labelText: 'Binary code',
+            ),
+          ),
+          RaisedButton(
+            child: Text('send'),
+            onPressed: () {
+              var value = Uint8List.fromList(hex.decode(binaryCode.text));
+              QuickBlue.writeValue(
+                  widget.deviceId, serviceUUID.text, characteristicUUID.text,
+                  value);
+            },
           ),
         ],
       ),
