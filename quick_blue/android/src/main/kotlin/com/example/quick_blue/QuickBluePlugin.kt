@@ -6,12 +6,12 @@ import android.bluetooth.BluetoothManager
 import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanResult
 import android.content.Context
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import androidx.annotation.NonNull
 import io.flutter.embedding.engine.plugins.FlutterPlugin
-import io.flutter.plugin.common.EventChannel
-import io.flutter.plugin.common.MethodCall
-import io.flutter.plugin.common.MethodChannel
+import io.flutter.plugin.common.*
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
 import java.nio.ByteBuffer
@@ -27,15 +27,18 @@ class QuickBluePlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamHand
   /// when the Flutter Engine is detached from the Activity
   private lateinit var method : MethodChannel
   private lateinit var eventScanResult : EventChannel
+  private lateinit var messageConnector: BasicMessageChannel<Any>
 
   override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
     method = MethodChannel(flutterPluginBinding.binaryMessenger, "quick_blue/method")
     eventScanResult = EventChannel(flutterPluginBinding.binaryMessenger, "quick_blue/event.scanResult")
+    messageConnector = BasicMessageChannel(flutterPluginBinding.binaryMessenger, "quick_blue/message.connector", StandardMessageCodec.INSTANCE)
 
     method.setMethodCallHandler(this)
     eventScanResult.setStreamHandler(this)
 
     context = flutterPluginBinding.applicationContext
+    mainThreadHandler = Handler(Looper.getMainLooper())
     bluetoothManager = flutterPluginBinding.applicationContext.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
   }
 
@@ -47,8 +50,14 @@ class QuickBluePlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamHand
   }
 
   private lateinit var context: Context
+  private lateinit var mainThreadHandler: Handler
   private lateinit var bluetoothManager: BluetoothManager
-  private val connectedGatts = mutableListOf<BluetoothGatt>()
+
+  private val knownGatts = mutableListOf<BluetoothGatt>()
+
+  private fun sendMessage(messageChannel: BasicMessageChannel<Any>, message: Map<String, String>) {
+    mainThreadHandler.post { messageChannel.send(message) }
+  }
 
   override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {
     when (call.method) {
@@ -59,19 +68,26 @@ class QuickBluePlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamHand
         bluetoothManager.adapter.bluetoothLeScanner?.stopScan(scanCallback)
       }
       "connect" -> {
-        val deviceId = call.argument<String>("deviceId")
+        val deviceId = call.argument<String>("deviceId")!!
+        if (knownGatts.find { it.device.address == deviceId } != null) {
+          return result.success(null)
+        }
         val gatt = bluetoothManager.adapter
                 .getRemoteDevice(deviceId)
                 .connectGatt(context, false, gattCallback)
-        connectedGatts.add(gatt)
+        knownGatts.add(gatt)
         result.success(null)
+        // TODO connecting
       }
       "disconnect" -> {
-        val deviceId = call.argument<String>("deviceId")
-        val gatt = connectedGatts.find { it.device.address == deviceId }
-        connectedGatts.remove(gatt)
-        gatt?.disconnect()
+        val deviceId = call.argument<String>("deviceId")!!
+        val gatt = knownGatts.find { it.device.address == deviceId }
+                ?: return result.error("IllegalArgument", "Unknown deviceId: $deviceId", null)
+        knownGatts.remove(gatt)
+        gatt.disconnect()
         result.success(null)
+        //FIXME If `disconnect` is called before BluetoothGatt.STATE_CONNECTED
+        // there will be no `disconnected` message any more
       }
       else -> {
         result.notImplemented()
@@ -118,6 +134,17 @@ class QuickBluePlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamHand
   private val gattCallback = object : BluetoothGattCallback() {
     override fun onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int) {
       Log.v(TAG, "onConnectionStateChange: device(${gatt.device.address}) status($status), newState($newState)")
+      if (newState == BluetoothGatt.STATE_CONNECTED && status == BluetoothGatt.GATT_SUCCESS) {
+        sendMessage(messageConnector, mapOf(
+          "deviceId" to gatt.device.address,
+          "ConnectionState" to "connected"
+        ))
+      } else {
+        sendMessage(messageConnector, mapOf(
+          "deviceId" to gatt.device.address,
+          "ConnectionState" to "disconnected"
+        ))
+      }
     }
   }
 }
