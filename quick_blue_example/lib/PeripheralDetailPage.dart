@@ -14,6 +14,22 @@ class PeripheralDetailPage extends StatefulWidget {
 
 class _PeripheralDetailPageState extends State<PeripheralDetailPage> {
   @override
+  void initState() {
+    super.initState();
+    QuickBlue.setConnectionHandler(_handleConnectionChange);
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    QuickBlue.setConnectionHandler(null);
+  }
+
+  void _handleConnectionChange(String deviceId, BlueConnectionState state) {
+    print('_handleConnectionChange $deviceId, $state');
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
