@@ -6,6 +6,8 @@ import 'models.dart';
 
 export 'models.dart';
 
+export 'package:quick_blue_platform_interface/models.dart';
+
 class QuickBlue {
   static void startScan() => QuickBluePlatform.instance.startScan();
 
@@ -19,4 +21,6 @@ class QuickBlue {
   static void connect(String deviceId) => QuickBluePlatform.instance.connect(deviceId);
 
   static void disconnect(String deviceId) => QuickBluePlatform.instance.disconnect(deviceId);
+
+  static void setConnectionHandler(OnConnectionChanged onConnectionChanged) => QuickBluePlatform.instance.setConnectionHandler(onConnectionChanged);
 }

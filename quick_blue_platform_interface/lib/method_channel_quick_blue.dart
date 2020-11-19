@@ -4,6 +4,11 @@ import 'package:quick_blue_platform_interface/quick_blue_platform_interface.dart
 class MethodChannelQuickBlue extends QuickBluePlatform {
   static const MethodChannel _method = const MethodChannel('quick_blue/method');
   static const _event_scanResult = const EventChannel('quick_blue/event.scanResult');
+  static const _message_connector = const BasicMessageChannel('quick_blue/message.connector', StandardMessageCodec());
+
+  MethodChannelQuickBlue() {
+    _message_connector.setMessageHandler(_handleConnectorMessage);
+  }
 
   @override
   void startScan() {
@@ -34,5 +39,14 @@ class MethodChannelQuickBlue extends QuickBluePlatform {
     _method.invokeMethod('disconnect', {
       'deviceId': deviceId,
     }).then((_) => print('disconnect invokeMethod success'));
+  }
+
+  Future<void> _handleConnectorMessage(dynamic message) {
+    print('_handleConnectorMessage $message');
+    if (message['ConnectionState'] != null) {
+      String deviceId = message['deviceId'];
+      BlueConnectionState connectionState = BlueConnectionState.parse(message['ConnectionState']);
+      onConnectionChanged?.call(deviceId, connectionState);
+    }
   }
 }

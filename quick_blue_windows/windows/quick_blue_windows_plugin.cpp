@@ -10,10 +10,12 @@
 #include <winrt/Windows.Devices.Bluetooth.GenericAttributeProfile.h>
 
 #include <flutter/method_channel.h>
+#include <flutter/basic_message_channel.h>
 #include <flutter/event_channel.h>
 #include <flutter/event_stream_handler_functions.h>
 #include <flutter/plugin_registrar_windows.h>
 #include <flutter/standard_method_codec.h>
+#include <flutter/standard_message_codec.h>
 
 #include <map>
 #include <memory>
@@ -22,13 +24,12 @@
 
 namespace {
 
-using namespace winrt;
-using namespace Windows::Foundation;
-using namespace Windows::Foundation::Collections;
-using namespace Windows::Storage::Streams;
-using namespace Windows::Devices::Bluetooth;
-using namespace Windows::Devices::Bluetooth::Advertisement;
-using namespace Windows::Devices::Bluetooth::GenericAttributeProfile;
+using namespace winrt::Windows::Foundation;
+using namespace winrt::Windows::Foundation::Collections;
+using namespace winrt::Windows::Storage::Streams;
+using namespace winrt::Windows::Devices::Bluetooth;
+using namespace winrt::Windows::Devices::Bluetooth::Advertisement;
+using namespace winrt::Windows::Devices::Bluetooth::GenericAttributeProfile;
 
 using flutter::EncodableValue;
 using flutter::EncodableMap;
@@ -66,15 +67,17 @@ class QuickBlueWindowsPlugin : public flutter::Plugin, public flutter::StreamHan
   std::unique_ptr<flutter::StreamHandlerError<>> OnCancelInternal(
       const EncodableValue* arguments) override;
 
+  std::unique_ptr<flutter::BasicMessageChannel<EncodableValue>> message_connector_;
+
   std::unique_ptr<flutter::EventSink<EncodableValue>> scan_result_sink_;
 
   BluetoothLEAdvertisementWatcher bluetoothLEWatcher{ nullptr };
-  event_token bluetoothLEWatcherReceivedToken;
+  winrt::event_token bluetoothLEWatcherReceivedToken;
   void BluetoothLEWatcher_Received(BluetoothLEAdvertisementWatcher sender, BluetoothLEAdvertisementReceivedEventArgs args);
 
   std::vector<BluetoothLEDevice> connected_devices_{};
-  fire_and_forget ConnectAsync(uint64_t bluetoothAddress);
-  fire_and_forget DisconnectAsync(uint64_t bluetoothAddress);
+  winrt::fire_and_forget ConnectAsync(uint64_t bluetoothAddress);
+  winrt::fire_and_forget DisconnectAsync(uint64_t bluetoothAddress);
 };
 
 // static
@@ -88,6 +91,10 @@ void QuickBlueWindowsPlugin::RegisterWithRegistrar(
       std::make_unique<flutter::EventChannel<EncodableValue>>(
           registrar->messenger(), "quick_blue/event.scanResult",
           &flutter::StandardMethodCodec::GetInstance());
+  auto message_connector_ =
+      std::make_unique<flutter::BasicMessageChannel<EncodableValue>>(
+          registrar->messenger(), "quick_blue/message.connector",
+          &flutter::StandardMessageCodec::GetInstance());
 
   auto plugin = std::make_unique<QuickBlueWindowsPlugin>();
 
@@ -110,6 +117,8 @@ void QuickBlueWindowsPlugin::RegisterWithRegistrar(
       });
   event_scan_result->SetStreamHandler(std::move(handler));
 
+  plugin->message_connector_ = std::move(message_connector_);
+
   registrar->AddPlugin(std::move(plugin));
 }
 
@@ -121,6 +130,7 @@ void QuickBlueWindowsPlugin::HandleMethodCall(
     const flutter::MethodCall<flutter::EncodableValue> &method_call,
     std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
   auto method_name = method_call.method_name();
+  OutputDebugString((L"HandleMethodCall " + winrt::to_hstring(method_name) + L"\n").c_str());
   if (method_name.compare("startScan") == 0) {
     if (!bluetoothLEWatcher) {
       bluetoothLEWatcher = BluetoothLEAdvertisementWatcher();
@@ -168,7 +178,7 @@ std::vector<uint8_t> parseManufacturerData(BluetoothLEAdvertisement advertisemen
 void QuickBlueWindowsPlugin::BluetoothLEWatcher_Received(
     BluetoothLEAdvertisementWatcher sender,
     BluetoothLEAdvertisementReceivedEventArgs args) {
-  OutputDebugString((L"Received " + to_hstring(args.BluetoothAddress()) + L"\n").c_str());
+  OutputDebugString((L"Received " + winrt::to_hstring(args.BluetoothAddress()) + L"\n").c_str());
   auto manufacturer_data = parseManufacturerData(args.Advertisement());
   if (scan_result_sink_) {
     scan_result_sink_->Success(EncodableMap{
@@ -202,23 +212,32 @@ std::unique_ptr<flutter::StreamHandlerError<EncodableValue>> QuickBlueWindowsPlu
   return nullptr;
 }
 
-fire_and_forget QuickBlueWindowsPlugin::ConnectAsync(uint64_t bluetoothAddress) {
+winrt::fire_and_forget QuickBlueWindowsPlugin::ConnectAsync(uint64_t bluetoothAddress) {
   auto device = co_await BluetoothLEDevice::FromBluetoothAddressAsync(bluetoothAddress);
   auto servicesResult = co_await device.GetGattServicesAsync();
   if (servicesResult.Status() != GattCommunicationStatus::Success) {
     OutputDebugString((L"GetGattServicesAsync error: " + winrt::to_hstring((int32_t)servicesResult.Status()) + L"\n").c_str());
+    message_connector_->Send(EncodableMap{
+      {"deviceId", std::to_string(bluetoothAddress)},
+      {"ConnectionState", "disconnected"},
+    });
     co_return;
   }
   connected_devices_.push_back(device);
+  message_connector_->Send(EncodableMap{
+    {"deviceId", std::to_string(bluetoothAddress)},
+    {"ConnectionState", "connected"},
+  });
 }
 
-fire_and_forget QuickBlueWindowsPlugin::DisconnectAsync(uint64_t bluetoothAddress) {
+winrt::fire_and_forget QuickBlueWindowsPlugin::DisconnectAsync(uint64_t bluetoothAddress) {
   auto it = std::find_if(connected_devices_.begin(), connected_devices_.end(), [=](const BluetoothLEDevice& d) {
     return d.BluetoothAddress() == bluetoothAddress;
   });
   if (it != connected_devices_.end()) {
     connected_devices_.erase(it);
   }
+  // TODO send `disconnected` message
   co_return;
 }
 
