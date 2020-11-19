@@ -94,7 +94,7 @@ packages:
       name: plugin_platform_interface
       url: "https://pub.flutter-io.cn"
     source: hosted
-    version: "1.0.2"
+    version: "1.0.3"
   quick_blue:
     dependency: "direct main"
     description:

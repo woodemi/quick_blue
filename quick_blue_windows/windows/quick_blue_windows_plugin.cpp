@@ -155,6 +155,9 @@ void QuickBlueWindowsPlugin::HandleMethodCall(
     auto deviceId = std::stoll(std::get<std::string>(args[EncodableValue("deviceId")]));
     DisconnectAsync(deviceId);
     result->Success(nullptr);
+  } else if (method_name.compare("discoverServices") == 0) {
+    // TODO
+    result->Success(nullptr);
   } else {
     result->NotImplemented();
   }
