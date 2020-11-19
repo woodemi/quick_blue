@@ -15,16 +15,19 @@ public class SwiftQuickBluePlugin: NSObject, FlutterPlugin {
   public static func register(with registrar: FlutterPluginRegistrar) {
     let method = FlutterMethodChannel(name: "quick_blue/method", binaryMessenger: registrar.messenger())
     let eventScanResult = FlutterEventChannel(name: "quick_blue/event.scanResult", binaryMessenger: registrar.messenger())
+    let messageConnector = FlutterBasicMessageChannel(name: "quick_blue/message.connector", binaryMessenger: registrar.messenger())
 
     let instance = SwiftQuickBluePlugin()
     registrar.addMethodCallDelegate(instance, channel: method)
     eventScanResult.setStreamHandler(instance)
+    instance.messageConnector = messageConnector
   }
     
   private var manager: CBCentralManager!
   private var discoveredPeripherals: Dictionary<String, CBPeripheral>!
 
   private var scanResultSink: FlutterEventSink?
+  private var messageConnector: FlutterBasicMessageChannel!
 
   override init() {
     super.init()
@@ -41,11 +44,8 @@ public class SwiftQuickBluePlugin: NSObject, FlutterPlugin {
       manager.stopScan()
       result(nil)
     case "connect":
-      guard let arguments = call.arguments as? Dictionary<String, Any>,
-          let deviceId = arguments["deviceId"] as? String else {
-        result(FlutterMethodNotImplemented)
-        return
-      }
+      let arguments = call.arguments as! Dictionary<String, Any>
+      let deviceId = arguments["deviceId"] as! String
       guard let peripheral = discoveredPeripherals[deviceId] else {
         result(FlutterError(code: "IllegalArgument", message: "Unknown deviceId:\(deviceId)", details: nil))
         return
@@ -53,16 +53,15 @@ public class SwiftQuickBluePlugin: NSObject, FlutterPlugin {
       manager.connect(peripheral)
       result(nil)
     case "disconnect":
-      guard let arguments = call.arguments as? Dictionary<String, Any>,
-            let deviceId = arguments["deviceId"] as? String else {
-        result(FlutterMethodNotImplemented)
-        return
-      }
+      let arguments = call.arguments as! Dictionary<String, Any>
+      let deviceId = arguments["deviceId"] as! String
       guard let peripheral = discoveredPeripherals[deviceId] else {
         result(FlutterError(code: "IllegalArgument", message: "Unknown deviceId:\(deviceId)", details: nil))
         return
       }
-      manager.cancelPeripheralConnection(peripheral)
+      if (peripheral.state != .disconnected) {
+        manager.cancelPeripheralConnection(peripheral)
+      }
       result(nil)
     default:
       result(FlutterMethodNotImplemented)
@@ -76,7 +75,7 @@ extension SwiftQuickBluePlugin: CBCentralManagerDelegate {
   }
 
   public func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String: Any], rssi RSSI: NSNumber) {
-    print("centralManager:didDiscoverPeripheral \(peripheral.name) \(peripheral.uuid)")
+    print("centralManager:didDiscoverPeripheral \(peripheral.name) \(peripheral.uuid.uuidString)")
     discoveredPeripherals[peripheral.uuid.uuidString] = peripheral
 
     let manufacturerData = advertisementData[CBAdvertisementDataManufacturerDataKey] as? Data
@@ -85,6 +84,22 @@ extension SwiftQuickBluePlugin: CBCentralManagerDelegate {
       "deviceId": peripheral.uuid.uuidString,
       "manufacturerData": FlutterStandardTypedData(bytes: manufacturerData ?? Data()),
       "rssi": RSSI,
+    ])
+  }
+
+  public func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
+    print("centralManager:didConnect \(peripheral.uuid.uuidString)")
+    messageConnector.sendMessage([
+      "deviceId": peripheral.uuid.uuidString,
+      "ConnectionState": "connected",
+    ])
+  }
+  
+  public func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
+    print("centralManager:didDisconnectPeripheral: \(peripheral.uuid.uuidString) error: \(error)")
+    messageConnector.sendMessage([
+      "deviceId": peripheral.uuid.uuidString,
+      "ConnectionState": "disconnected",
     ])
   }
 }
