@@ -2,6 +2,14 @@ import CoreBluetooth
 import Flutter
 import UIKit
 
+extension CBUUID {
+  public var uuidStr: String {
+    get {
+      uuidString.lowercased()
+    }
+  }
+}
+
 extension CBPeripheral {
   // FIXME https://forums.developer.apple.com/thread/84375
   public var uuid: UUID {
@@ -50,6 +58,7 @@ public class SwiftQuickBluePlugin: NSObject, FlutterPlugin {
         result(FlutterError(code: "IllegalArgument", message: "Unknown deviceId:\(deviceId)", details: nil))
         return
       }
+      peripheral.delegate = self
       manager.connect(peripheral)
       result(nil)
     case "disconnect":
@@ -62,6 +71,15 @@ public class SwiftQuickBluePlugin: NSObject, FlutterPlugin {
       if (peripheral.state != .disconnected) {
         manager.cancelPeripheralConnection(peripheral)
       }
+      result(nil)
+    case "discoverServices":
+      let arguments = call.arguments as! Dictionary<String, Any>
+      let deviceId = arguments["deviceId"] as! String
+      guard let peripheral = discoveredPeripherals[deviceId] else {
+        result(FlutterError(code: "IllegalArgument", message: "Unknown deviceId:\(deviceId)", details: nil))
+        return
+      }
+      peripheral.discoverServices(nil)
       result(nil)
     default:
       result(FlutterMethodNotImplemented)
@@ -125,5 +143,25 @@ extension SwiftQuickBluePlugin: FlutterStreamHandler {
       scanResultSink = nil
     }
     return nil
+  }
+}
+
+extension SwiftQuickBluePlugin: CBPeripheralDelegate {
+  public func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) {
+    print("peripheral: \(peripheral.uuid.uuidString) didDiscoverServices: \(error)")
+    for service in peripheral.services! {
+      peripheral.discoverCharacteristics(nil, for: service)
+    }
+  }
+    
+  public func peripheral(_ peripheral: CBPeripheral, didDiscoverCharacteristicsFor service: CBService, error: Error?) {
+    for characteristic in service.characteristics! {
+      print("peripheral:didDiscoverCharacteristicsForService (\(service.uuid.uuidString), \(characteristic.uuid.uuidString)")
+    }
+    self.messageConnector.sendMessage([
+      "deviceId": peripheral.uuid.uuidString,
+      "ServiceState": "discovered",
+      "services": [service.uuid.uuidStr],
+    ])
   }
 }
