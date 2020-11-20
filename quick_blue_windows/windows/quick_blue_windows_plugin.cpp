@@ -69,6 +69,16 @@ std::string to_uuidstr(winrt::guid guid) {
   return std::string{ chars };
 }
 
+struct BluetoothDeviceAgent {
+  BluetoothLEDevice device;
+
+  BluetoothDeviceAgent(BluetoothLEDevice device): device(device) {}
+
+  ~BluetoothDeviceAgent() {
+    device = nullptr;
+  }
+};
+
 class QuickBlueWindowsPlugin : public flutter::Plugin, public flutter::StreamHandler<EncodableValue> {
  public:
   static void RegisterWithRegistrar(flutter::PluginRegistrarWindows *registrar);
@@ -97,8 +107,7 @@ class QuickBlueWindowsPlugin : public flutter::Plugin, public flutter::StreamHan
   winrt::event_token bluetoothLEWatcherReceivedToken;
   void BluetoothLEWatcher_Received(BluetoothLEAdvertisementWatcher sender, BluetoothLEAdvertisementReceivedEventArgs args);
 
-  std::vector<BluetoothLEDevice> connected_devices_{};
-  BluetoothLEDevice EnsureDeviceConnected(std::string deviceId);
+  std::map<uint64_t, std::unique_ptr<BluetoothDeviceAgent>> connectedDevices{};
 
   winrt::fire_and_forget ConnectAsync(uint64_t bluetoothAddress);
   void CleanConnection(uint64_t bluetoothAddress);
@@ -197,12 +206,13 @@ void QuickBlueWindowsPlugin::HandleMethodCall(
     auto service = std::get<std::string>(args[EncodableValue("service")]);
     auto value = std::get<std::vector<uint8_t>>(args[EncodableValue("value")]);
     auto characteristic = std::get<std::string>(args[EncodableValue("characteristic")]);
-    auto device = EnsureDeviceConnected(deviceId);
-    if (!device) {
+    auto it = connectedDevices.find(std::stoull(deviceId));
+    if (it == connectedDevices.end()) {
       result->Error("IllegalArgument", "Unknown devicesId:" + deviceId);
       return;
     }
-    WriteValueAsync(device, service, characteristic, value);
+
+    WriteValueAsync(it->second->device, service, characteristic, value);
     result->Success(nullptr);
   } else {
     result->NotImplemented();
@@ -261,14 +271,6 @@ std::unique_ptr<flutter::StreamHandlerError<EncodableValue>> QuickBlueWindowsPlu
   return nullptr;
 }
 
-BluetoothLEDevice QuickBlueWindowsPlugin::EnsureDeviceConnected(std::string deviceId) {
-  auto bluetoothAddress = std::stoull(deviceId);
-  auto it = std::find_if(connected_devices_.begin(), connected_devices_.end(), [=](const BluetoothLEDevice& d) {
-    return d.BluetoothAddress() == bluetoothAddress;
-  });
-  return it != connected_devices_.end() ? *it : nullptr;
-}
-
 winrt::fire_and_forget QuickBlueWindowsPlugin::ConnectAsync(uint64_t bluetoothAddress) {
   auto device = co_await BluetoothLEDevice::FromBluetoothAddressAsync(bluetoothAddress);
   auto servicesResult = co_await device.GetGattServicesAsync();
@@ -280,7 +282,9 @@ winrt::fire_and_forget QuickBlueWindowsPlugin::ConnectAsync(uint64_t bluetoothAd
     });
     co_return;
   }
-  connected_devices_.push_back(device);
+  auto deviceAgent = std::make_unique<BluetoothDeviceAgent>(device);
+  auto pair = std::make_pair(bluetoothAddress, std::move(deviceAgent));
+  connectedDevices.insert(std::move(pair));
   message_connector_->Send(EncodableMap{
     {"deviceId", std::to_string(bluetoothAddress)},
     {"ConnectionState", "connected"},
@@ -291,12 +295,7 @@ void QuickBlueWindowsPlugin::CleanConnection(uint64_t bluetoothAddress) {
   deviceGattCharacteristics.extract(bluetoothAddress);
   deviceGattServices.extract(bluetoothAddress);
 
-  auto it = std::find_if(connected_devices_.begin(), connected_devices_.end(), [=](const BluetoothLEDevice& d) {
-    return d.BluetoothAddress() == bluetoothAddress;
-  });
-  if (it != connected_devices_.end()) {
-    connected_devices_.erase(it);
-  }
+  connectedDevices.extract(bluetoothAddress);
 }
 
 IAsyncOperation<GattDeviceService> QuickBlueWindowsPlugin::GetServiceAsync(BluetoothLEDevice device, std::string service) {
