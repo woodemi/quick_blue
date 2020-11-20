@@ -180,12 +180,17 @@ extension SwiftQuickBluePlugin: CBPeripheralDelegate {
     
   public func peripheral(_ peripheral: CBPeripheral, didDiscoverCharacteristicsFor service: CBService, error: Error?) {
     for characteristic in service.characteristics! {
-      print("peripheral:didDiscoverCharacteristicsForService (\(service.uuid.uuidString), \(characteristic.uuid.uuidString)")
+      print("peripheral:didDiscoverCharacteristicsForService (\(service.uuid.uuidStr), \(characteristic.uuid.uuidStr)")
     }
     self.messageConnector.sendMessage([
       "deviceId": peripheral.uuid.uuidString,
       "ServiceState": "discovered",
       "services": [service.uuid.uuidStr],
     ])
+  }
+    
+  public func peripheral(_ peripheral: CBPeripheral, didWriteValueFor characteristic: CBCharacteristic, error: Error?) {
+    let data = characteristic.value as? NSData
+    print("peripheral:didWriteValueForCharacteristic \(characteristic.uuid.uuidStr) \(data) error: \(error)")
   }
 }
