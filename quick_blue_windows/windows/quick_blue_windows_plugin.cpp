@@ -101,7 +101,7 @@ class QuickBlueWindowsPlugin : public flutter::Plugin, public flutter::StreamHan
   BluetoothLEDevice EnsureDeviceConnected(std::string deviceId);
 
   winrt::fire_and_forget ConnectAsync(uint64_t bluetoothAddress);
-  winrt::fire_and_forget DisconnectAsync(uint64_t bluetoothAddress);
+  void CleanConnection(uint64_t bluetoothAddress);
 
   std::map<uint64_t, std::unique_ptr<std::map<std::string, GattDeviceService>>> deviceGattServices{};
   IAsyncOperation<GattDeviceService> GetServiceAsync(BluetoothLEDevice device, std::string service);
@@ -185,7 +185,8 @@ void QuickBlueWindowsPlugin::HandleMethodCall(
   } else if (method_name.compare("disconnect") == 0) {
     auto args = std::get<EncodableMap>(*method_call.arguments());
     auto deviceId = std::get<std::string>(args[EncodableValue("deviceId")]);
-    DisconnectAsync(std::stoull(deviceId));
+    CleanConnection(std::stoull(deviceId));
+    // TODO send `disconnected` message
     result->Success(nullptr);
   } else if (method_name.compare("discoverServices") == 0) {
     // TODO
@@ -286,15 +287,16 @@ winrt::fire_and_forget QuickBlueWindowsPlugin::ConnectAsync(uint64_t bluetoothAd
   });
 }
 
-winrt::fire_and_forget QuickBlueWindowsPlugin::DisconnectAsync(uint64_t bluetoothAddress) {
+void QuickBlueWindowsPlugin::CleanConnection(uint64_t bluetoothAddress) {
+  deviceGattCharacteristics.extract(bluetoothAddress);
+  deviceGattServices.extract(bluetoothAddress);
+
   auto it = std::find_if(connected_devices_.begin(), connected_devices_.end(), [=](const BluetoothLEDevice& d) {
     return d.BluetoothAddress() == bluetoothAddress;
   });
   if (it != connected_devices_.end()) {
     connected_devices_.erase(it);
   }
-  // TODO send `disconnected` message
-  co_return;
 }
 
 IAsyncOperation<GattDeviceService> QuickBlueWindowsPlugin::GetServiceAsync(BluetoothLEDevice device, std::string service) {
