@@ -71,6 +71,8 @@ std::string to_uuidstr(winrt::guid guid) {
 
 struct BluetoothDeviceAgent {
   BluetoothLEDevice device;
+  std::map<std::string, GattDeviceService> gattServices;
+  std::map<std::string, GattCharacteristic> gattCharacteristics;
 
   BluetoothDeviceAgent(BluetoothLEDevice device): device(device) {}
 
@@ -115,10 +117,9 @@ class QuickBlueWindowsPlugin : public flutter::Plugin, public flutter::StreamHan
   std::map<uint64_t, std::unique_ptr<std::map<std::string, GattDeviceService>>> deviceGattServices{};
   IAsyncOperation<GattDeviceService> GetServiceAsync(BluetoothLEDevice device, std::string service);
 
-  std::map<uint64_t, std::unique_ptr<std::map<std::string, GattCharacteristic>>> deviceGattCharacteristics{};
-  IAsyncOperation<GattCharacteristic> GetCharacteristicAsync(BluetoothLEDevice device, std::string service, std::string characteristic);
+  IAsyncOperation<GattCharacteristic> GetCharacteristicAsync(uint64_t bluetoothAddress, std::string service, std::string characteristic);
 
-  winrt::fire_and_forget WriteValueAsync(BluetoothLEDevice device, std::string service, std::string characteristic, std::vector<uint8_t> value);
+  winrt::fire_and_forget WriteValueAsync(uint64_t bluetoothAddress, std::string service, std::string characteristic, std::vector<uint8_t> value);
 };
 
 // static
@@ -212,7 +213,7 @@ void QuickBlueWindowsPlugin::HandleMethodCall(
       return;
     }
 
-    WriteValueAsync(it->second->device, service, characteristic, value);
+    WriteValueAsync(std::stoull(deviceId), service, characteristic, value);
     result->Success(nullptr);
   } else {
     result->NotImplemented();
@@ -292,7 +293,6 @@ winrt::fire_and_forget QuickBlueWindowsPlugin::ConnectAsync(uint64_t bluetoothAd
 }
 
 void QuickBlueWindowsPlugin::CleanConnection(uint64_t bluetoothAddress) {
-  deviceGattCharacteristics.extract(bluetoothAddress);
   deviceGattServices.extract(bluetoothAddress);
 
   connectedDevices.extract(bluetoothAddress);
@@ -318,16 +318,12 @@ IAsyncOperation<GattDeviceService> QuickBlueWindowsPlugin::GetServiceAsync(Bluet
   co_return deviceGattServices.at(device.BluetoothAddress())->at(service);
 }
 
-IAsyncOperation<GattCharacteristic> QuickBlueWindowsPlugin::GetCharacteristicAsync(BluetoothLEDevice device, std::string service, std::string characteristic) {
+IAsyncOperation<GattCharacteristic> QuickBlueWindowsPlugin::GetCharacteristicAsync(uint64_t bluetoothAddress, std::string service, std::string characteristic) {
   // opertator `[]` of colllection requires `CopyConstructible` and `Assignable`
-  if (deviceGattCharacteristics.count(device.BluetoothAddress()) == 0) {
-    auto gattCharacteristics = std::make_unique<std::map<std::string, GattCharacteristic>>();
-    auto pair = std::make_pair(device.BluetoothAddress(), std::move(gattCharacteristics));
-    deviceGattCharacteristics.insert(std::move(pair));
-  }
+  auto& gattCharacteristics = connectedDevices.at(bluetoothAddress)->gattCharacteristics;
 
-  if (deviceGattCharacteristics.at(device.BluetoothAddress())->count(characteristic) == 0) {
-    auto gattService = co_await GetServiceAsync(device, service);
+  if (gattCharacteristics.count(characteristic) == 0) {
+    auto gattService = co_await GetServiceAsync(connectedDevices.at(bluetoothAddress)->device, service);
 
     auto characteristicResult = co_await gattService.GetCharacteristicsAsync();
     if (characteristicResult.Status() != GattCommunicationStatus::Success)
@@ -335,13 +331,13 @@ IAsyncOperation<GattCharacteristic> QuickBlueWindowsPlugin::GetCharacteristicAsy
 
     for (auto c : characteristicResult.Characteristics())
       if (to_uuidstr(c.Uuid()) == characteristic)
-        deviceGattCharacteristics.at(device.BluetoothAddress())->insert(std::make_pair(characteristic, c));
+        gattCharacteristics.insert(std::make_pair(characteristic, c));
   }
-  co_return deviceGattCharacteristics.at(device.BluetoothAddress())->at(characteristic);
+  co_return gattCharacteristics.at(characteristic);
 }
 
-winrt::fire_and_forget QuickBlueWindowsPlugin::WriteValueAsync(BluetoothLEDevice device, std::string service, std::string characteristic, std::vector<uint8_t> value) {
-  auto gattCharacteristic = co_await GetCharacteristicAsync(device, service, characteristic);
+winrt::fire_and_forget QuickBlueWindowsPlugin::WriteValueAsync(uint64_t bluetoothAddress, std::string service, std::string characteristic, std::vector<uint8_t> value) {
+  auto gattCharacteristic = co_await GetCharacteristicAsync(bluetoothAddress, service, characteristic);
   auto writeValueStatus = co_await gattCharacteristic.WriteValueAsync(from_bytevc(value), GattWriteOption::WriteWithResponse);
   OutputDebugString((L"WriteValueAsync " + winrt::to_hstring(characteristic) + L", " + winrt::to_hstring(to_hexstring(value)) + L", " + winrt::to_hstring((int32_t)writeValueStatus) + L"\n").c_str());
 }
