@@ -71,10 +71,13 @@ std::string to_uuidstr(winrt::guid guid) {
 
 struct BluetoothDeviceAgent {
   BluetoothLEDevice device;
+  winrt::event_token connnectionStatusChangedToken;
   std::map<std::string, GattDeviceService> gattServices;
   std::map<std::string, GattCharacteristic> gattCharacteristics;
 
-  BluetoothDeviceAgent(BluetoothLEDevice device): device(device) {}
+  BluetoothDeviceAgent(BluetoothLEDevice device, winrt::event_token connnectionStatusChangedToken)
+      : device(device),
+        connnectionStatusChangedToken(connnectionStatusChangedToken) {}
 
   ~BluetoothDeviceAgent() {
     device = nullptr;
@@ -140,6 +143,7 @@ class QuickBlueWindowsPlugin : public flutter::Plugin, public flutter::StreamHan
   std::map<uint64_t, std::unique_ptr<BluetoothDeviceAgent>> connectedDevices{};
 
   winrt::fire_and_forget ConnectAsync(uint64_t bluetoothAddress);
+  void BluetoothLEDevice_ConnectionStatusChanged(BluetoothLEDevice sender, IInspectable args);
   void CleanConnection(uint64_t bluetoothAddress);
 
   winrt::fire_and_forget WriteValueAsync(BluetoothDeviceAgent& bluetoothDeviceAgent, std::string service, std::string characteristic, std::vector<uint8_t> value);
@@ -306,17 +310,34 @@ winrt::fire_and_forget QuickBlueWindowsPlugin::ConnectAsync(uint64_t bluetoothAd
     });
     co_return;
   }
-  auto deviceAgent = std::make_unique<BluetoothDeviceAgent>(device);
+  auto connnectionStatusChangedToken = device.ConnectionStatusChanged({ this, &QuickBlueWindowsPlugin::BluetoothLEDevice_ConnectionStatusChanged });
+  auto deviceAgent = std::make_unique<BluetoothDeviceAgent>(device, connnectionStatusChangedToken);
   auto pair = std::make_pair(bluetoothAddress, std::move(deviceAgent));
   connectedDevices.insert(std::move(pair));
+
   message_connector_->Send(EncodableMap{
     {"deviceId", std::to_string(bluetoothAddress)},
     {"ConnectionState", "connected"},
   });
 }
 
+void QuickBlueWindowsPlugin::BluetoothLEDevice_ConnectionStatusChanged(BluetoothLEDevice sender, IInspectable args) {
+  OutputDebugString((L"ConnectionStatusChanged " + winrt::to_hstring((int32_t)sender.ConnectionStatus()) + L"\n").c_str());
+  if (sender.ConnectionStatus() == BluetoothConnectionStatus::Disconnected) {
+    CleanConnection(sender.BluetoothAddress());
+    message_connector_->Send(EncodableMap{
+      {"deviceId", std::to_string(sender.BluetoothAddress())},
+      {"ConnectionState", "disconnected"},
+    });
+  }
+}
+
 void QuickBlueWindowsPlugin::CleanConnection(uint64_t bluetoothAddress) {
-  connectedDevices.extract(bluetoothAddress);
+  auto node = connectedDevices.extract(bluetoothAddress);
+  if (!node.empty()) {
+    auto deviceAgent = std::move(node.mapped());
+    deviceAgent->device.ConnectionStatusChanged(deviceAgent->connnectionStatusChangedToken);
+  }
 }
 
 winrt::fire_and_forget QuickBlueWindowsPlugin::WriteValueAsync(BluetoothDeviceAgent& bluetoothDeviceAgent, std::string service, std::string characteristic, std::vector<uint8_t> value) {
