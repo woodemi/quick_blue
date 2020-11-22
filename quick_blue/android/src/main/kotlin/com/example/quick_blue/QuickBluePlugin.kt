@@ -1,9 +1,6 @@
 package com.example.quick_blue
 
-import android.bluetooth.BluetoothGatt
-import android.bluetooth.BluetoothGattCallback
-import android.bluetooth.BluetoothGattCharacteristic
-import android.bluetooth.BluetoothManager
+import android.bluetooth.*
 import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanResult
 import android.content.Context
@@ -95,6 +92,16 @@ class QuickBluePlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamHand
         val gatt = knownGatts.find { it.device.address == deviceId }
                 ?: return result.error("IllegalArgument", "Unknown deviceId: $deviceId", null)
         gatt.discoverServices()
+        result.success(null)
+      }
+      "setNotifiable" -> {
+        val deviceId = call.argument<String>("deviceId")!!
+        val service = call.argument<String>("service")!!
+        val characteristic = call.argument<String>("characteristic")!!
+        val notifiable = call.argument<Boolean>("notifiable")!!
+        val gatt = knownGatts.find { it.device.address == deviceId }
+                ?: return result.error("IllegalArgument", "Unknown deviceId: $deviceId", null)
+        gatt.setNotifiable(service to characteristic, notifiable)
         result.success(null)
       }
       "writeValue" -> {
@@ -217,3 +224,15 @@ fun Short.toByteArray(byteOrder: ByteOrder = ByteOrder.LITTLE_ENDIAN): ByteArray
 
 fun BluetoothGatt.getCharacteristic(serviceCharacteristic: Pair<String, String>) =
         getService(UUID.fromString(serviceCharacteristic.first)).getCharacteristic(UUID.fromString(serviceCharacteristic.second))
+
+private val DESC__CLIENT_CHAR_CONFIGURATION = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb")
+
+fun BluetoothGatt.setNotifiable(serviceCharacteristic: Pair<String, String>, notifiable: Boolean) {
+  val descriptor = getCharacteristic(serviceCharacteristic).getDescriptor(DESC__CLIENT_CHAR_CONFIGURATION)
+  val (value, enable) = when (notifiable) {
+    true -> BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE to true
+    else -> BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE to false
+  }
+  descriptor.value = value
+  setCharacteristicNotification(descriptor.characteristic, enable) && writeDescriptor(descriptor)
+}

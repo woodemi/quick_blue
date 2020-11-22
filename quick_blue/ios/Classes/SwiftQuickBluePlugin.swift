@@ -29,6 +29,10 @@ extension CBPeripheral {
     }
     return c!
   }
+
+  public func setNotifiable(_ notifiable: Bool, for characteristic: String, of service: String) {
+    setNotifyValue(notifiable, for: getCharacteristic(characteristic, of: service))
+  }
 }
 
 public class SwiftQuickBluePlugin: NSObject, FlutterPlugin {
@@ -92,6 +96,18 @@ public class SwiftQuickBluePlugin: NSObject, FlutterPlugin {
         return
       }
       peripheral.discoverServices(nil)
+      result(nil)
+    case "setNotifiable":
+      let arguments = call.arguments as! Dictionary<String, Any>
+      let deviceId = arguments["deviceId"] as! String
+      let service = arguments["service"] as! String
+      let characteristic = arguments["characteristic"] as! String
+      let notifiable = arguments["notifiable"] as! Bool
+      guard let peripheral = discoveredPeripherals[deviceId] else {
+        result(FlutterError(code: "IllegalArgument", message: "Unknown deviceId:\(deviceId)", details: nil))
+        return
+      }
+      peripheral.setNotifiable(notifiable, for: characteristic, of: service)
       result(nil)
     case "writeValue":
       let arguments = call.arguments as! Dictionary<String, Any>

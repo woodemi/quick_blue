@@ -33,6 +33,10 @@ class QuickBlue {
     QuickBluePlatform.instance.onServiceDiscovered = onServiceDiscovered;
   }
 
+  static Future<void> setNotifiable(String deviceId, String service, String characteristic, bool notifiable) {
+    return QuickBluePlatform.instance.setNotifiable(deviceId, service, characteristic, notifiable);
+  }
+
   static Future<void> writeValue(String deviceId, String service, String characteristic, Uint8List value) {
     return QuickBluePlatform.instance.writeValue(deviceId, service, characteristic, value);
   }

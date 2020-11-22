@@ -69,6 +69,16 @@ class MethodChannelQuickBlue extends QuickBluePlatform {
   }
 
   @override
+  Future<void> setNotifiable(String deviceId, String service, String characteristic, bool notifiable) {
+    _method.invokeMethod('setNotifiable', {
+      'deviceId': deviceId,
+      'service': service,
+      'characteristic': characteristic,
+      'notifiable': notifiable,
+    }).then((_) => print('setNotifiable invokeMethod success'));
+  }
+
+  @override
   Future<void> writeValue(String deviceId, String service, String characteristic, Uint8List value) {
     _method.invokeMethod('writeValue', {
       'deviceId': deviceId,

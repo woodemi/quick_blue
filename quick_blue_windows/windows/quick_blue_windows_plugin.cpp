@@ -146,6 +146,7 @@ class QuickBlueWindowsPlugin : public flutter::Plugin, public flutter::StreamHan
   void BluetoothLEDevice_ConnectionStatusChanged(BluetoothLEDevice sender, IInspectable args);
   void CleanConnection(uint64_t bluetoothAddress);
 
+  winrt::fire_and_forget SetNotifiableAsync(BluetoothDeviceAgent& bluetoothDeviceAgent, std::string service, std::string characteristic, bool notifiable);
   winrt::fire_and_forget WriteValueAsync(BluetoothDeviceAgent& bluetoothDeviceAgent, std::string service, std::string characteristic, std::vector<uint8_t> value);
 };
 
@@ -228,12 +229,26 @@ void QuickBlueWindowsPlugin::HandleMethodCall(
   } else if (method_name.compare("discoverServices") == 0) {
     // TODO
     result->Success(nullptr);
+  } else if (method_name.compare("setNotifiable") == 0) {
+    auto args = std::get<EncodableMap>(*method_call.arguments());
+    auto deviceId = std::get<std::string>(args[EncodableValue("deviceId")]);
+    auto service = std::get<std::string>(args[EncodableValue("service")]);
+    auto characteristic = std::get<std::string>(args[EncodableValue("characteristic")]);
+    auto notifiable = std::get<bool>(args[EncodableValue("notifiable")]);
+    auto it = connectedDevices.find(std::stoull(deviceId));
+    if (it == connectedDevices.end()) {
+      result->Error("IllegalArgument", "Unknown devicesId:" + deviceId);
+      return;
+    }
+
+    SetNotifiableAsync(*it->second, service, characteristic, notifiable);
+    result->Success(nullptr);
   } else if (method_name.compare("writeValue") == 0) {
     auto args = std::get<EncodableMap>(*method_call.arguments());
     auto deviceId = std::get<std::string>(args[EncodableValue("deviceId")]);
     auto service = std::get<std::string>(args[EncodableValue("service")]);
-    auto value = std::get<std::vector<uint8_t>>(args[EncodableValue("value")]);
     auto characteristic = std::get<std::string>(args[EncodableValue("characteristic")]);
+    auto value = std::get<std::vector<uint8_t>>(args[EncodableValue("value")]);
     auto it = connectedDevices.find(std::stoull(deviceId));
     if (it == connectedDevices.end()) {
       result->Error("IllegalArgument", "Unknown devicesId:" + deviceId);
@@ -338,6 +353,14 @@ void QuickBlueWindowsPlugin::CleanConnection(uint64_t bluetoothAddress) {
     auto deviceAgent = std::move(node.mapped());
     deviceAgent->device.ConnectionStatusChanged(deviceAgent->connnectionStatusChangedToken);
   }
+}
+
+winrt::fire_and_forget QuickBlueWindowsPlugin::SetNotifiableAsync(BluetoothDeviceAgent& bluetoothDeviceAgent, std::string service, std::string characteristic, bool notifiable) {
+  auto gattCharacteristic = co_await bluetoothDeviceAgent.GetCharacteristicAsync(service, characteristic);
+  auto descriptorValue = notifiable ? GattClientCharacteristicConfigurationDescriptorValue::Indicate : GattClientCharacteristicConfigurationDescriptorValue::None;
+  auto writeDescriptorStatus = co_await gattCharacteristic.WriteClientCharacteristicConfigurationDescriptorAsync(descriptorValue);
+  if (writeDescriptorStatus != GattCommunicationStatus::Success)
+    OutputDebugString((L"WriteClientCharacteristicConfigurationDescriptorAsync " + winrt::to_hstring((int32_t)writeDescriptorStatus) + L"\n").c_str());
 }
 
 winrt::fire_and_forget QuickBlueWindowsPlugin::WriteValueAsync(BluetoothDeviceAgent& bluetoothDeviceAgent, std::string service, std::string characteristic, std::vector<uint8_t> value) {
