@@ -116,7 +116,7 @@ class _PeripheralDetailPageState extends State<PeripheralDetailPage> {
               var value = Uint8List.fromList(hex.decode(binaryCode.text));
               QuickBlue.writeValue(
                   widget.deviceId, serviceUUID.text, characteristicUUID.text,
-                  value);
+                  value, BleOutputProperty.withResponse);
             },
           ),
           RaisedButton(
@@ -124,7 +124,7 @@ class _PeripheralDetailPageState extends State<PeripheralDetailPage> {
             onPressed: () {
               QuickBlue.setNotifiable(
                   widget.deviceId, WOODEMI_SERV__COMMAND, WOODEMI_CHAR__COMMAND_RESPONSE,
-                  true);
+                  BleInputProperty.indication);
             },
           ),
         ],

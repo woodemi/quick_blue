@@ -33,15 +33,15 @@ class QuickBlue {
     QuickBluePlatform.instance.onServiceDiscovered = onServiceDiscovered;
   }
 
-  static Future<void> setNotifiable(String deviceId, String service, String characteristic, bool notifiable) {
-    return QuickBluePlatform.instance.setNotifiable(deviceId, service, characteristic, notifiable);
+  static Future<void> setNotifiable(String deviceId, String service, String characteristic, BleInputProperty bleInputProperty) {
+    return QuickBluePlatform.instance.setNotifiable(deviceId, service, characteristic, bleInputProperty);
   }
 
   static void setValueHandler(OnValueChanged onValueChanged) {
     QuickBluePlatform.instance.onValueChanged = onValueChanged;
   }
 
-  static Future<void> writeValue(String deviceId, String service, String characteristic, Uint8List value) {
-    return QuickBluePlatform.instance.writeValue(deviceId, service, characteristic, value);
+  static Future<void> writeValue(String deviceId, String service, String characteristic, Uint8List value, BleOutputProperty bleOutputProperty) {
+    return QuickBluePlatform.instance.writeValue(deviceId, service, characteristic, value, bleOutputProperty);
   }
 }
