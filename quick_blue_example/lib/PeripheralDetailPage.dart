@@ -8,6 +8,7 @@ const WOODEMI_SUFFIX = 'ba5e-f4ee-5ca1-eb1e5e4b1ce0';
 
 const WOODEMI_SERV__COMMAND = '57444d01-$WOODEMI_SUFFIX';
 const WOODEMI_CHAR__COMMAND_REQUEST = '57444e02-$WOODEMI_SUFFIX';
+const WOODEMI_CHAR__COMMAND_RESPONSE = WOODEMI_CHAR__COMMAND_REQUEST;
 
 class PeripheralDetailPage extends StatefulWidget {
   final String deviceId;
@@ -110,6 +111,14 @@ class _PeripheralDetailPageState extends State<PeripheralDetailPage> {
               QuickBlue.writeValue(
                   widget.deviceId, serviceUUID.text, characteristicUUID.text,
                   value);
+            },
+          ),
+          RaisedButton(
+            child: Text('setNotifiable'),
+            onPressed: () {
+              QuickBlue.setNotifiable(
+                  widget.deviceId, WOODEMI_SERV__COMMAND, WOODEMI_CHAR__COMMAND_RESPONSE,
+                  true);
             },
           ),
         ],
