@@ -9,8 +9,6 @@ class BlueConnectionState {
   static BlueConnectionState parse(String value) {
     if (value == disconnected.value) {
       return disconnected;
-    } else if (value == connecting.value) {
-      return connecting;
     } else if (value == connected.value) {
       return connected;
     }
