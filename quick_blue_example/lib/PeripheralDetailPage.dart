@@ -10,6 +10,8 @@ const WOODEMI_SERV__COMMAND = '57444d01-$WOODEMI_SUFFIX';
 const WOODEMI_CHAR__COMMAND_REQUEST = '57444e02-$WOODEMI_SUFFIX';
 const WOODEMI_CHAR__COMMAND_RESPONSE = WOODEMI_CHAR__COMMAND_REQUEST;
 
+const WOODEMI_MTU_WUART = 247;
+
 class PeripheralDetailPage extends StatefulWidget {
   final String deviceId;
 
@@ -92,6 +94,14 @@ class _PeripheralDetailPageState extends State<PeripheralDetailPage> {
               ),
             ],
           ),
+          RaisedButton(
+            child: Text('setNotifiable'),
+            onPressed: () {
+              QuickBlue.setNotifiable(
+                  widget.deviceId, WOODEMI_SERV__COMMAND, WOODEMI_CHAR__COMMAND_RESPONSE,
+                  BleInputProperty.indication);
+            },
+          ),
           TextField(
             controller: serviceUUID,
             decoration: InputDecoration(
@@ -120,11 +130,9 @@ class _PeripheralDetailPageState extends State<PeripheralDetailPage> {
             },
           ),
           RaisedButton(
-            child: Text('setNotifiable'),
+            child: Text('requestMtu'),
             onPressed: () {
-              QuickBlue.setNotifiable(
-                  widget.deviceId, WOODEMI_SERV__COMMAND, WOODEMI_CHAR__COMMAND_RESPONSE,
-                  BleInputProperty.indication);
+              QuickBlue.requestMtu(widget.deviceId, WOODEMI_MTU_WUART);
             },
           ),
         ],

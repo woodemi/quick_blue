@@ -71,6 +71,8 @@ class MethodChannelQuickBlue extends QuickBluePlatform {
       String characteristic = characteristicValue['characteristic'];
       Uint8List value = Uint8List.fromList(characteristicValue['value']); // In case of _Uint8ArrayView
       onValueChanged?.call(deviceId, characteristic, value);
+    } else if (message['mtuConfig'] != null) {
+      _mtuConfigController.add(message['mtuConfig']);
     }
   }
 
@@ -98,5 +100,17 @@ class MethodChannelQuickBlue extends QuickBluePlatform {
       // Characteristic sometimes unavailable on Android
       throw onError;
     });
+  }
+
+  // FIXME Close
+  final _mtuConfigController = StreamController<int>.broadcast();
+
+  @override
+  Future<int> requestMtu(String deviceId, int expectedMtu) async {
+    _method.invokeMethod('requestMtu', {
+      'deviceId': deviceId,
+      'expectedMtu': expectedMtu,
+    }).then((_) => print('requestMtu invokeMethod success'));
+    return await _mtuConfigController.stream.first;
   }
 }

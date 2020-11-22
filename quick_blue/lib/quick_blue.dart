@@ -44,4 +44,6 @@ class QuickBlue {
   static Future<void> writeValue(String deviceId, String service, String characteristic, Uint8List value, BleOutputProperty bleOutputProperty) {
     return QuickBluePlatform.instance.writeValue(deviceId, service, characteristic, value, bleOutputProperty);
   }
+
+  static Future<int> requestMtu(String deviceId, int expectedMtu) => QuickBluePlatform.instance.requestMtu(deviceId, expectedMtu);
 }
