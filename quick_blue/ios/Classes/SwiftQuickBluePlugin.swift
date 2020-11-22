@@ -30,8 +30,8 @@ extension CBPeripheral {
     return c!
   }
 
-  public func setNotifiable(_ notifiable: Bool, for characteristic: String, of service: String) {
-    setNotifyValue(notifiable, for: getCharacteristic(characteristic, of: service))
+  public func setNotifiable(_ bleInputProperty: String, for characteristic: String, of service: String) {
+    setNotifyValue(bleInputProperty != "disabled", for: getCharacteristic(characteristic, of: service))
   }
 }
 
@@ -102,12 +102,12 @@ public class SwiftQuickBluePlugin: NSObject, FlutterPlugin {
       let deviceId = arguments["deviceId"] as! String
       let service = arguments["service"] as! String
       let characteristic = arguments["characteristic"] as! String
-      let notifiable = arguments["notifiable"] as! Bool
+      let bleInputProperty = arguments["bleInputProperty"] as! String
       guard let peripheral = discoveredPeripherals[deviceId] else {
         result(FlutterError(code: "IllegalArgument", message: "Unknown deviceId:\(deviceId)", details: nil))
         return
       }
-      peripheral.setNotifiable(notifiable, for: characteristic, of: service)
+      peripheral.setNotifiable(bleInputProperty, for: characteristic, of: service)
       result(nil)
     case "writeValue":
       let arguments = call.arguments as! Dictionary<String, Any>
@@ -115,11 +115,13 @@ public class SwiftQuickBluePlugin: NSObject, FlutterPlugin {
       let service = arguments["service"] as! String
       let characteristic = arguments["characteristic"] as! String
       let value = arguments["value"] as! FlutterStandardTypedData
+      let bleOutputProperty = arguments["bleOutputProperty"] as! String
       guard let peripheral = discoveredPeripherals[deviceId] else {
         result(FlutterError(code: "IllegalArgument", message: "Unknown deviceId:\(deviceId)", details: nil))
         return
       }
-      peripheral.writeValue(value.data, for: peripheral.getCharacteristic(characteristic, of: service), type: .withResponse)
+      let type = bleOutputProperty == "withoutResponse" ? CBCharacteristicWriteType.withoutResponse : CBCharacteristicWriteType.withResponse
+      peripheral.writeValue(value.data, for: peripheral.getCharacteristic(characteristic, of: service), type: type)
       result(nil)
     default:
       result(FlutterMethodNotImplemented)
