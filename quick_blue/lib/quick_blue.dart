@@ -37,6 +37,10 @@ class QuickBlue {
     return QuickBluePlatform.instance.setNotifiable(deviceId, service, characteristic, notifiable);
   }
 
+  static void setValueHandler(OnValueChanged onValueChanged) {
+    QuickBluePlatform.instance.onValueChanged = onValueChanged;
+  }
+
   static Future<void> writeValue(String deviceId, String service, String characteristic, Uint8List value) {
     return QuickBluePlatform.instance.writeValue(deviceId, service, characteristic, value);
   }

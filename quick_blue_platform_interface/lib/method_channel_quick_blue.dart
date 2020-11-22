@@ -65,6 +65,12 @@ class MethodChannelQuickBlue extends QuickBluePlatform {
           onServiceDiscovered?.call(deviceId, s);
         }
       }
+    } else if (message['characteristicValue'] != null) {
+      String deviceId = message['deviceId'];
+      var characteristicValue = message['characteristicValue'];
+      String characteristic = characteristicValue['characteristic'];
+      Uint8List value = Uint8List.fromList(characteristicValue['value']); // In case of _Uint8ArrayView
+      onValueChanged?.call(deviceId, characteristic, value);
     }
   }
 
