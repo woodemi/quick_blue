@@ -56,7 +56,7 @@ packages:
       name: cupertino_icons
       url: "https://pub.flutter-io.cn"
     source: hosted
-    version: "1.0.0"
+    version: "1.0.1+1"
   fake_async:
     dependency: transitive
     description:
@@ -108,28 +108,28 @@ packages:
       path: "../quick_blue"
       relative: true
     source: path
-    version: "0.1.1+1"
+    version: "0.2.0"
   quick_blue_macos:
     dependency: transitive
     description:
-      path: "../quick_blue_macos"
-      relative: true
-    source: path
-    version: "0.1.1"
+      name: quick_blue_macos
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "0.2.0"
   quick_blue_platform_interface:
     dependency: transitive
     description:
-      path: "../quick_blue_platform_interface"
-      relative: true
-    source: path
-    version: "0.1.1"
+      name: quick_blue_platform_interface
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "0.2.0"
   quick_blue_windows:
     dependency: transitive
     description:
-      path: "../quick_blue_windows"
-      relative: true
-    source: path
-    version: "0.1.1"
+      name: quick_blue_windows
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "0.2.0"
   sky_engine:
     dependency: transitive
     description: flutter
