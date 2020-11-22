@@ -206,7 +206,16 @@ extension SwiftQuickBluePlugin: CBPeripheralDelegate {
   }
     
   public func peripheral(_ peripheral: CBPeripheral, didWriteValueFor characteristic: CBCharacteristic, error: Error?) {
-    let data = characteristic.value as? NSData
-    print("peripheral:didWriteValueForCharacteristic \(characteristic.uuid.uuidStr) \(data) error: \(error)")
+    print("peripheral:didWriteValueForCharacteristic \(characteristic.uuid.uuidStr) \(characteristic.value as? NSData) error: \(error)")
+  }
+    
+  public func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
+    print("peripheral:didUpdateValueForForCharacteristic \(characteristic.uuid) \(characteristic.value as! NSData) error: \(error)")
+    self.messageConnector.sendMessage([
+      "characteristicValue": [
+        "characteristic": characteristic.uuid.uuidStr,
+        "value": FlutterStandardTypedData(bytes: characteristic.value!)
+      ]
+    ])
   }
 }
