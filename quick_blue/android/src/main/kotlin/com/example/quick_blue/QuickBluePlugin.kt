@@ -98,10 +98,10 @@ class QuickBluePlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamHand
         val deviceId = call.argument<String>("deviceId")!!
         val service = call.argument<String>("service")!!
         val characteristic = call.argument<String>("characteristic")!!
-        val notifiable = call.argument<Boolean>("notifiable")!!
+        val bleInputProperty = call.argument<String>("bleInputProperty")!!
         val gatt = knownGatts.find { it.device.address == deviceId }
                 ?: return result.error("IllegalArgument", "Unknown deviceId: $deviceId", null)
-        gatt.setNotifiable(service to characteristic, notifiable)
+        gatt.setNotifiable(service to characteristic, bleInputProperty)
         result.success(null)
       }
       "writeValue" -> {
@@ -238,10 +238,11 @@ fun BluetoothGatt.getCharacteristic(serviceCharacteristic: Pair<String, String>)
 
 private val DESC__CLIENT_CHAR_CONFIGURATION = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb")
 
-fun BluetoothGatt.setNotifiable(serviceCharacteristic: Pair<String, String>, notifiable: Boolean) {
+fun BluetoothGatt.setNotifiable(serviceCharacteristic: Pair<String, String>, bleInputProperty: String) {
   val descriptor = getCharacteristic(serviceCharacteristic).getDescriptor(DESC__CLIENT_CHAR_CONFIGURATION)
-  val (value, enable) = when (notifiable) {
-    true -> BluetoothGattDescriptor.ENABLE_INDICATION_VALUE to true
+  val (value, enable) = when (bleInputProperty) {
+    "notification" -> BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE to true
+    "indication" -> BluetoothGattDescriptor.ENABLE_INDICATION_VALUE to true
     else -> BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE to false
   }
   descriptor.value = value
