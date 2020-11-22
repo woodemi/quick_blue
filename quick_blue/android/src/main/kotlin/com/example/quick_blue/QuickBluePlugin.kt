@@ -208,6 +208,17 @@ class QuickBluePlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamHand
     override fun onCharacteristicWrite(gatt: BluetoothGatt?, characteristic: BluetoothGattCharacteristic, status: Int) {
       Log.v(TAG, "onCharacteristicWrite ${characteristic.uuid}, ${characteristic.value.contentToString()} $status")
     }
+
+    override fun onCharacteristicChanged(gatt: BluetoothGatt, characteristic: BluetoothGattCharacteristic) {
+      Log.v(TAG, "onCharacteristicChanged ${characteristic.uuid}, ${characteristic.value.contentToString()}")
+      sendMessage(messageConnector, mapOf(
+        "deviceId" to gatt.device.address,
+        "characteristicValue" to mapOf(
+          "characteristic" to characteristic.uuid.toString(),
+          "value" to characteristic.value
+        )
+      ))
+    }
   }
 }
 
@@ -230,7 +241,7 @@ private val DESC__CLIENT_CHAR_CONFIGURATION = UUID.fromString("00002902-0000-100
 fun BluetoothGatt.setNotifiable(serviceCharacteristic: Pair<String, String>, notifiable: Boolean) {
   val descriptor = getCharacteristic(serviceCharacteristic).getDescriptor(DESC__CLIENT_CHAR_CONFIGURATION)
   val (value, enable) = when (notifiable) {
-    true -> BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE to true
+    true -> BluetoothGattDescriptor.ENABLE_INDICATION_VALUE to true
     else -> BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE to false
   }
   descriptor.value = value
