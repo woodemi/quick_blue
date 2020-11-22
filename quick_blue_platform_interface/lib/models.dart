@@ -1,7 +1,5 @@
 class BlueConnectionState {
   static const disconnected = BlueConnectionState._('disconnected');
-  static const connecting = BlueConnectionState._('connecting');
-  static const awaitConfirm = BlueConnectionState._('awaitConfirm');
   static const connected = BlueConnectionState._('connected');
 
   final String value;
