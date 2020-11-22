@@ -1,3 +1,20 @@
+## [0.2.0] - 2020.11.22
+
+**Connect/Disconnect BLE peripheral**
+- Define `connect` & `disconnect` for Android/iOS/macOS/Windows
+- Define `onConnectionChanged` for Android/iOS/macOS/Windows
+
+**Discover BLE peripheral**
+- Define `discoverServices` for Android/iOS/macOS/Windows
+- Define `onServiceDiscovered` for Android/iOS/macOS/Windows
+
+**Send data to BLE peripheral**
+- Define `writeValue` for Android/iOS/macOS/Windows
+
+**Recieve data from BLE peripheral**
+- Define `setNotifiable` for Android/iOS/macOS/Windows
+- Define `onValueChanged` for Android/iOS/macOS/Windows
+
 ## [0.1.1] - 2020.11.17
 
 ### QuickBluePlatform
