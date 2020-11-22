@@ -2,6 +2,8 @@ import CoreBluetooth
 import Flutter
 import UIKit
 
+let GATT_HEADER_LENGTH = 3
+
 let GSS_SUFFIX = "0000-1000-8000-00805f9b34fb"
 
 extension CBUUID {
@@ -109,6 +111,17 @@ public class SwiftQuickBluePlugin: NSObject, FlutterPlugin {
       }
       peripheral.setNotifiable(bleInputProperty, for: characteristic, of: service)
       result(nil)
+    case "requestMtu":
+      let arguments = call.arguments as! Dictionary<String, Any>
+      let deviceId = arguments["deviceId"] as! String
+      guard let peripheral = discoveredPeripherals[deviceId] else {
+        result(FlutterError(code: "IllegalArgument", message: "Unknown deviceId:\(deviceId)", details: nil))
+        return
+      }
+      result(nil)
+      let mtu = peripheral.maximumWriteValueLength(for: .withoutResponse)
+      print("peripheral.maximumWriteValueLengthForType:CBCharacteristicWriteWithoutResponse \(mtu)")
+      messageConnector.sendMessage(["mtuConfig": mtu + GATT_HEADER_LENGTH])
     case "writeValue":
       let arguments = call.arguments as! Dictionary<String, Any>
       let deviceId = arguments["deviceId"] as! String

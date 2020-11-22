@@ -148,6 +148,7 @@ class QuickBlueWindowsPlugin : public flutter::Plugin, public flutter::StreamHan
   void CleanConnection(uint64_t bluetoothAddress);
 
   winrt::fire_and_forget SetNotifiableAsync(BluetoothDeviceAgent& bluetoothDeviceAgent, std::string service, std::string characteristic, std::string bleInputProperty);
+  winrt::fire_and_forget RequestMtuAsync(BluetoothDeviceAgent& bluetoothDeviceAgent, uint64_t expectedMtu);
   winrt::fire_and_forget WriteValueAsync(BluetoothDeviceAgent& bluetoothDeviceAgent, std::string service, std::string characteristic, std::vector<uint8_t> value, std::string bleOutputProperty);
   void QuickBlueWindowsPlugin::GattCharacteristic_ValueChanged(GattCharacteristic sender, GattValueChangedEventArgs args);
 };
@@ -244,6 +245,18 @@ void QuickBlueWindowsPlugin::HandleMethodCall(
     }
 
     SetNotifiableAsync(*it->second, service, characteristic, bleInputProperty);
+    result->Success(nullptr);
+  } else if (method_name.compare("requestMtu") == 0) {
+    auto args = std::get<EncodableMap>(*method_call.arguments());
+    auto deviceId = std::get<std::string>(args[EncodableValue("deviceId")]);
+    auto expectedMtu = std::get<int32_t>(args[EncodableValue("expectedMtu")]);
+    auto it = connectedDevices.find(std::stoull(deviceId));
+    if (it == connectedDevices.end()) {
+      result->Error("IllegalArgument", "Unknown devicesId:" + deviceId);
+      return;
+    }
+
+    RequestMtuAsync(*it->second, expectedMtu);
     result->Success(nullptr);
   } else if (method_name.compare("writeValue") == 0) {
     auto args = std::get<EncodableMap>(*method_call.arguments());
@@ -359,6 +372,14 @@ void QuickBlueWindowsPlugin::CleanConnection(uint64_t bluetoothAddress) {
       deviceAgent->gattCharacteristics.at(tokenPair.first).ValueChanged(tokenPair.second);
     }
   }
+}
+
+winrt::fire_and_forget QuickBlueWindowsPlugin::RequestMtuAsync(BluetoothDeviceAgent& bluetoothDeviceAgent, uint64_t expectedMtu) {
+  OutputDebugString(L"RequestMtuAsync expectedMtu");
+  auto gattSession = co_await GattSession::FromDeviceIdAsync(bluetoothDeviceAgent.device.BluetoothDeviceId());
+  message_connector_->Send(EncodableMap{
+    {"mtuConfig", (int64_t)gattSession.MaxPduSize()},
+  });
 }
 
 winrt::fire_and_forget QuickBlueWindowsPlugin::SetNotifiableAsync(BluetoothDeviceAgent& bluetoothDeviceAgent, std::string service, std::string characteristic, std::string bleInputProperty) {

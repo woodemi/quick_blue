@@ -104,6 +104,14 @@ class QuickBluePlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamHand
         gatt.setNotifiable(service to characteristic, bleInputProperty)
         result.success(null)
       }
+      "requestMtu" -> {
+        val deviceId = call.argument<String>("deviceId")!!
+        val expectedMtu = call.argument<Int>("expectedMtu")!!
+        val gatt = knownGatts.find { it.device.address == deviceId }
+                ?: return result.error("IllegalArgument", "Unknown deviceId: $deviceId", null)
+        gatt.requestMtu(expectedMtu)
+        result.success(null)
+      }
       "writeValue" -> {
         val deviceId = call.argument<String>("deviceId")!!
         val service = call.argument<String>("service")!!
@@ -203,6 +211,14 @@ class QuickBluePlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamHand
         "ServiceState" to "discovered",
         "services" to gatt.services.map { it.uuid.toString() }
       ))
+    }
+
+    override fun onMtuChanged(gatt: BluetoothGatt?, mtu: Int, status: Int) {
+      if (status == BluetoothGatt.GATT_SUCCESS) {
+        sendMessage(messageConnector, mapOf(
+          "mtuConfig" to mtu
+        ))
+      }
     }
 
     override fun onCharacteristicWrite(gatt: BluetoothGatt?, characteristic: BluetoothGattCharacteristic, status: Int) {
