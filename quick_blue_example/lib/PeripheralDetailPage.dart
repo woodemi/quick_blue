@@ -131,8 +131,9 @@ class _PeripheralDetailPageState extends State<PeripheralDetailPage> {
           ),
           RaisedButton(
             child: Text('requestMtu'),
-            onPressed: () {
-              QuickBlue.requestMtu(widget.deviceId, WOODEMI_MTU_WUART);
+            onPressed: () async {
+              var mtu = await QuickBlue.requestMtu(widget.deviceId, WOODEMI_MTU_WUART);
+              print('requestMtu $mtu');
             },
           ),
         ],
