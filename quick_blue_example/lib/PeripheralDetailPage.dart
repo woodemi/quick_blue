@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:convert/convert.dart';
@@ -155,17 +156,80 @@ class _PeripheralDetailPageState extends State<PeripheralDetailPage> {
               print('requestMtu $mtu');
             },
           ),
-          RaisedButton(
-            child: Text('getLargeDataInfo'),
-            onPressed: () {
-              var value = Uint8List.fromList([0x02] + fileInfo);
-              QuickBlue.writeValue(
-                  widget.deviceId, WOODEMI_SERV__FILE_INPUT, WOODEMI_CHAR__FILE_INPUT_CONTROL_REQUEST,
-                  value, BleOutputProperty.withResponse);
-            },
-          ),
+          ..._importMemo(),
         ],
       ),
     );
   }
+
+  var _totalSize = TextEditingController(
+    text: '90',
+  );
+
+  var _currentPos = 0;
+
+  List<Widget> _importMemo() {
+    return [
+      RaisedButton(
+        child: Text('getLargeDataInfo'),
+        onPressed: () {
+          var value = Uint8List.fromList([0x02] + fileInfo);
+          QuickBlue.writeValue(
+              widget.deviceId,
+              WOODEMI_SERV__FILE_INPUT,
+              WOODEMI_CHAR__FILE_INPUT_CONTROL_REQUEST,
+              value,
+              BleOutputProperty.withResponse);
+        },
+      ),
+      TextField(
+        controller: _totalSize,
+        decoration: InputDecoration(
+          labelText: 'Total size',
+        ),
+      ),
+      Text('_currentPos $_currentPos'),
+      RaisedButton(
+        child: Text('requestNextBlock'),
+        onPressed: () {
+          var totalSize = int.parse(_totalSize.text);
+          var mtu = 247;
+          var maxChunkSize = mtu - 1 - 1;
+          var blockSize = requestNextBlock(totalSize, _currentPos, maxChunkSize);
+          setState(() => _currentPos += blockSize);
+        },
+      ),
+      RaisedButton(
+        child: Text('resetCurrentPos'),
+        onPressed: () {
+          setState(() => _currentPos = 0);
+        },
+      )
+    ];
+  }
+
+  int requestNextBlock(int totalSize, int currentPos, int maxChunkSize) {
+    var maxBlockSize = maxChunkSize * (0xFF + 1);
+    var blockSize = min(totalSize - currentPos, maxBlockSize);
+    var data = [
+      0x00, 0x01, // imageId
+      ...decodeUint32(currentPos),
+      ...decodeUint32(blockSize),
+      ...decodeUint16(maxChunkSize),
+      0x00, // transferMethod
+      0x04, 0x00, // l2capChannelOrPsm
+    ];
+    var value = Uint8List.fromList([0x04] + data);
+    QuickBlue.writeValue(
+        widget.deviceId,
+        WOODEMI_SERV__FILE_INPUT,
+        WOODEMI_CHAR__FILE_INPUT_CONTROL_REQUEST,
+        value,
+        BleOutputProperty.withResponse);
+    return blockSize;
+  }
+
+  Uint8List decodeUint16(int i) => (ByteData(2)..setUint16(0, i)).buffer.asUint8List();
+
+  Uint8List decodeUint32(int i) => (ByteData(4)..setUint32(0, i)).buffer.asUint8List();
 }
