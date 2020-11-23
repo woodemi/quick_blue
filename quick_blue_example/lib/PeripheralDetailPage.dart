@@ -10,7 +10,20 @@ const WOODEMI_SERV__COMMAND = '57444d01-$WOODEMI_SUFFIX';
 const WOODEMI_CHAR__COMMAND_REQUEST = '57444e02-$WOODEMI_SUFFIX';
 const WOODEMI_CHAR__COMMAND_RESPONSE = WOODEMI_CHAR__COMMAND_REQUEST;
 
+const WOODEMI_SERV__FILE_INPUT = '57444d03-$WOODEMI_SUFFIX';
+const WOODEMI_CHAR__FILE_INPUT_CONTROL_REQUEST = '57444d04-$WOODEMI_SUFFIX';
+const WOODEMI_CHAR__FILE_INPUT_CONTROL_RESPONSE = WOODEMI_CHAR__FILE_INPUT_CONTROL_REQUEST;
+const WOODEMI_CHAR__FILE_INPUT = '57444d05-$WOODEMI_SUFFIX';
+
 const WOODEMI_MTU_WUART = 247;
+
+final fileInfo = [
+  0x00, 0x01, // imageId
+  0x01, 0x00, 0x00, // Build Version
+  0x41, // Stack Version
+  0x11, 0x11, 0x11, // Hardware Id
+  0x01 // Manufacturer Id
+];
 
 class PeripheralDetailPage extends StatefulWidget {
   final String deviceId;
@@ -96,10 +109,16 @@ class _PeripheralDetailPageState extends State<PeripheralDetailPage> {
           ),
           RaisedButton(
             child: Text('setNotifiable'),
-            onPressed: () {
-              QuickBlue.setNotifiable(
+            onPressed: () async {
+              await QuickBlue.setNotifiable(
                   widget.deviceId, WOODEMI_SERV__COMMAND, WOODEMI_CHAR__COMMAND_RESPONSE,
                   BleInputProperty.indication);
+              await QuickBlue.setNotifiable(
+                  widget.deviceId, WOODEMI_SERV__FILE_INPUT, WOODEMI_CHAR__FILE_INPUT_CONTROL_RESPONSE,
+                  BleInputProperty.indication);
+              await QuickBlue.setNotifiable(
+                  widget.deviceId, WOODEMI_SERV__FILE_INPUT, WOODEMI_CHAR__FILE_INPUT,
+                  BleInputProperty.notification);
             },
           ),
           TextField(
@@ -134,6 +153,15 @@ class _PeripheralDetailPageState extends State<PeripheralDetailPage> {
             onPressed: () async {
               var mtu = await QuickBlue.requestMtu(widget.deviceId, WOODEMI_MTU_WUART);
               print('requestMtu $mtu');
+            },
+          ),
+          RaisedButton(
+            child: Text('getLargeDataInfo'),
+            onPressed: () {
+              var value = Uint8List.fromList([0x02] + fileInfo);
+              QuickBlue.writeValue(
+                  widget.deviceId, WOODEMI_SERV__FILE_INPUT, WOODEMI_CHAR__FILE_INPUT_CONTROL_REQUEST,
+                  value, BleOutputProperty.withResponse);
             },
           ),
         ],
