@@ -10,6 +10,8 @@ export 'models.dart';
 export 'package:quick_blue_platform_interface/models.dart';
 
 class QuickBlue {
+  static Future<bool> isBluetoothAvailable() => QuickBluePlatform.instance.isBluetoothAvailable();
+
   static void startScan() => QuickBluePlatform.instance.startScan();
 
   static void stopScan() => QuickBluePlatform.instance.stopScan();
