@@ -42,6 +42,13 @@ class _MyAppState extends State<MyApp> {
         ),
         body: Column(
           children: [
+            FutureBuilder(
+              future: QuickBlue.isBluetoothAvailable(),
+              builder: (context, snapshot) {
+                var available = snapshot.data?.toString() ?? '...';
+                return Text('Bluetooth init: $available');
+              },
+            ),
             _buildButtons(),
             Divider(
               color: Colors.blue,

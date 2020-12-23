@@ -5,6 +5,7 @@
 #include <winrt/Windows.Foundation.h>
 #include <winrt/Windows.Foundation.Collections.h>
 #include <winrt/Windows.Storage.Streams.h>
+#include <winrt/Windows.Devices.Radios.h>
 #include <winrt/Windows.Devices.Bluetooth.h>
 #include <winrt/Windows.Devices.Bluetooth.Advertisement.h>
 #include <winrt/Windows.Devices.Bluetooth.GenericAttributeProfile.h>
@@ -31,6 +32,7 @@ namespace {
 using namespace winrt::Windows::Foundation;
 using namespace winrt::Windows::Foundation::Collections;
 using namespace winrt::Windows::Storage::Streams;
+using namespace winrt::Windows::Devices::Radios;
 using namespace winrt::Windows::Devices::Bluetooth;
 using namespace winrt::Windows::Devices::Bluetooth::Advertisement;
 using namespace winrt::Windows::Devices::Bluetooth::GenericAttributeProfile;
@@ -122,6 +124,8 @@ class QuickBlueWindowsPlugin : public flutter::Plugin, public flutter::StreamHan
   virtual ~QuickBlueWindowsPlugin();
 
  private:
+   winrt::fire_and_forget InitializeAsync();
+
   // Called when a method is called on this plugin's channel from Dart.
   void HandleMethodCall(
       const flutter::MethodCall<flutter::EncodableValue> &method_call,
@@ -136,6 +140,8 @@ class QuickBlueWindowsPlugin : public flutter::Plugin, public flutter::StreamHan
   std::unique_ptr<flutter::BasicMessageChannel<EncodableValue>> message_connector_;
 
   std::unique_ptr<flutter::EventSink<EncodableValue>> scan_result_sink_;
+
+  Radio bluetoothRadio{ nullptr };
 
   BluetoothLEAdvertisementWatcher bluetoothLEWatcher{ nullptr };
   winrt::event_token bluetoothLEWatcherReceivedToken;
@@ -195,16 +201,25 @@ void QuickBlueWindowsPlugin::RegisterWithRegistrar(
   registrar->AddPlugin(std::move(plugin));
 }
 
-QuickBlueWindowsPlugin::QuickBlueWindowsPlugin() {}
+QuickBlueWindowsPlugin::QuickBlueWindowsPlugin() {
+  InitializeAsync();
+}
 
 QuickBlueWindowsPlugin::~QuickBlueWindowsPlugin() {}
+
+winrt::fire_and_forget QuickBlueWindowsPlugin::InitializeAsync() {
+  auto bluetoothAdapter = co_await BluetoothAdapter::GetDefaultAsync();
+  bluetoothRadio = co_await bluetoothAdapter.GetRadioAsync();
+}
 
 void QuickBlueWindowsPlugin::HandleMethodCall(
     const flutter::MethodCall<flutter::EncodableValue> &method_call,
     std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
   auto method_name = method_call.method_name();
   OutputDebugString((L"HandleMethodCall " + winrt::to_hstring(method_name) + L"\n").c_str());
-  if (method_name.compare("startScan") == 0) {
+  if (method_name.compare("isBluetoothAvailable") == 0) {
+    result->Success(EncodableValue(bluetoothRadio && bluetoothRadio.State() == RadioState::On));
+  } else if (method_name.compare("startScan") == 0) {
     if (!bluetoothLEWatcher) {
       bluetoothLEWatcher = BluetoothLEAdvertisementWatcher();
       bluetoothLEWatcherReceivedToken = bluetoothLEWatcher.Received({ this, &QuickBlueWindowsPlugin::BluetoothLEWatcher_Received });

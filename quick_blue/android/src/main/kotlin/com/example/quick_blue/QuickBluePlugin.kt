@@ -60,11 +60,16 @@ class QuickBluePlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamHand
 
   override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {
     when (call.method) {
+      "isBluetoothAvailable" -> {
+        result.success(bluetoothManager.adapter.isEnabled)
+      }
       "startScan" -> {
         bluetoothManager.adapter.bluetoothLeScanner?.startScan(scanCallback)
+        result.success(null)
       }
       "stopScan" -> {
         bluetoothManager.adapter.bluetoothLeScanner?.stopScan(scanCallback)
+        result.success(null)
       }
       "connect" -> {
         val deviceId = call.argument<String>("deviceId")!!

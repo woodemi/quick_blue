@@ -56,7 +56,7 @@ packages:
       name: cupertino_icons
       url: "https://pub.flutter-io.cn"
     source: hosted
-    version: "1.0.1+1"
+    version: "1.0.0"
   fake_async:
     dependency: transitive
     description:
@@ -117,7 +117,7 @@ packages:
     source: path
     version: "0.2.0"
   quick_blue_platform_interface:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
       path: "../quick_blue_platform_interface"
       relative: true

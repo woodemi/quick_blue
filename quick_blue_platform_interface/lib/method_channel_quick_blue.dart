@@ -14,6 +14,9 @@ class MethodChannelQuickBlue extends QuickBluePlatform {
   }
 
   @override
+  Future<bool> isBluetoothAvailable() => _method.invokeMethod('isBluetoothAvailable');
+
+  @override
   void startScan() {
     _method.invokeMethod('startScan')
         .then((_) => print('startScan invokeMethod success'));
