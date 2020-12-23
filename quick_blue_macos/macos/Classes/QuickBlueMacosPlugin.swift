@@ -63,6 +63,8 @@ public class QuickBlueMacosPlugin: NSObject, FlutterPlugin {
 
   public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
     switch call.method {
+    case "isBluetoothAvailable":
+      result(manager.state == .poweredOn)
     case "startScan":
       manager.scanForPeripherals(withServices: nil)
       result(nil)
