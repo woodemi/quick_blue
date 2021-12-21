@@ -326,6 +326,9 @@ void QuickBlueWindowsPlugin::BluetoothLEWatcher_Received(
 std::unique_ptr<flutter::StreamHandlerError<EncodableValue>> QuickBlueWindowsPlugin::OnListenInternal(
     const EncodableValue* arguments, std::unique_ptr<flutter::EventSink<EncodableValue>>&& events)
 {
+  if (arguments == nullptr) {
+    return nullptr;
+  }
   auto args = std::get<EncodableMap>(*arguments);
   auto name = std::get<std::string>(args[EncodableValue("name")]);
   if (name.compare("scanResult") == 0) {
@@ -337,6 +340,9 @@ std::unique_ptr<flutter::StreamHandlerError<EncodableValue>> QuickBlueWindowsPlu
 std::unique_ptr<flutter::StreamHandlerError<EncodableValue>> QuickBlueWindowsPlugin::OnCancelInternal(
     const EncodableValue* arguments)
 {
+  if (arguments == nullptr) {
+    return nullptr;
+  }
   auto args = std::get<EncodableMap>(*arguments);
   auto name = std::get<std::string>(args[EncodableValue("name")]);
   if (name.compare("scanResult") == 0) {
