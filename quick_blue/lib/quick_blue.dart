@@ -25,13 +25,13 @@ class QuickBlue {
 
   static void disconnect(String deviceId) => QuickBluePlatform.instance.disconnect(deviceId);
 
-  static void setConnectionHandler(OnConnectionChanged onConnectionChanged) {
+  static void setConnectionHandler(OnConnectionChanged? onConnectionChanged) {
     QuickBluePlatform.instance.onConnectionChanged = onConnectionChanged;
   }
 
   static void discoverServices(String deviceId) => QuickBluePlatform.instance.discoverServices(deviceId);
 
-  static void setServiceHandler(OnServiceDiscovered onServiceDiscovered) {
+  static void setServiceHandler(OnServiceDiscovered? onServiceDiscovered) {
     QuickBluePlatform.instance.onServiceDiscovered = onServiceDiscovered;
   }
 
@@ -39,7 +39,7 @@ class QuickBlue {
     return QuickBluePlatform.instance.setNotifiable(deviceId, service, characteristic, bleInputProperty);
   }
 
-  static void setValueHandler(OnValueChanged onValueChanged) {
+  static void setValueHandler(OnValueChanged? onValueChanged) {
     QuickBluePlatform.instance.onValueChanged = onValueChanged;
   }
 
