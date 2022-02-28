@@ -1,27 +1,22 @@
 PODS:
   - FlutterMacOS (1.0.0)
-  - quick_blue (0.0.1)
   - quick_blue_macos (0.0.1):
     - FlutterMacOS
 
 DEPENDENCIES:
-  - FlutterMacOS (from `Flutter/ephemeral/.symlinks/flutter/darwin-x64`)
-  - quick_blue (from `Flutter/ephemeral/.symlinks/plugins/quick_blue/macos`)
+  - FlutterMacOS (from `Flutter/ephemeral`)
   - quick_blue_macos (from `Flutter/ephemeral/.symlinks/plugins/quick_blue_macos/macos`)
 
 EXTERNAL SOURCES:
   FlutterMacOS:
-    :path: Flutter/ephemeral/.symlinks/flutter/darwin-x64
-  quick_blue:
-    :path: Flutter/ephemeral/.symlinks/plugins/quick_blue/macos
+    :path: Flutter/ephemeral
   quick_blue_macos:
     :path: Flutter/ephemeral/.symlinks/plugins/quick_blue_macos/macos
 
 SPEC CHECKSUMS:
-  FlutterMacOS: 15bea8a44d2fa024068daa0140371c020b4b6ff9
-  quick_blue: 7e9360c118bfb7e32884d8379e7a1d7286dc4207
+  FlutterMacOS: 57701585bf7de1b3fc2bb61f6378d73bbdea8424
   quick_blue_macos: b7808bfaa3524fbf1edbba0d8b080908299c3541
 
-PODFILE CHECKSUM: d8ba9b3e9e93c62c74a660b46c6fcb09f03991a7
+PODFILE CHECKSUM: c7161fcf45d4fd9025dc0f48a76d6e64e52f8176
 
-COCOAPODS: 1.10.0
+COCOAPODS: 1.11.2

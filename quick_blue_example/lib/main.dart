@@ -15,7 +15,7 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  StreamSubscription<BlueScanResult> _subscription;
+  StreamSubscription<BlueScanResult>? _subscription;
 
   @override
   void initState() {
@@ -80,7 +80,7 @@ class _MyAppState extends State<MyApp> {
     );
   }
 
-  var _scanResults = List<BlueScanResult>();
+  var _scanResults = <BlueScanResult>[];
 
   Widget _buildListView() {
     return Expanded(
