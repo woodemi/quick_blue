@@ -1,3 +1,7 @@
+## [0.3.0-dev.0] - 2022.3.3
+
+- Migerate to Null-Safety
+
 ## [0.2.0] - 2020.11.22
 
 **Connect/Disconnect BLE peripheral**

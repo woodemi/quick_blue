@@ -108,28 +108,28 @@ packages:
       path: "../quick_blue"
       relative: true
     source: path
-    version: "0.2.0"
+    version: "0.3.0-dev.0"
   quick_blue_macos:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
       path: "../quick_blue_macos"
       relative: true
     source: path
-    version: "0.2.0"
+    version: "0.3.0-dev.0"
   quick_blue_platform_interface:
     dependency: "direct overridden"
     description:
       path: "../quick_blue_platform_interface"
       relative: true
     source: path
-    version: "0.2.0"
+    version: "0.3.0-dev.0"
   quick_blue_windows:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
       path: "../quick_blue_windows"
       relative: true
     source: path
-    version: "0.2.0"
+    version: "0.3.0-dev.0"
   sky_engine:
     dependency: transitive
     description: flutter
