@@ -105,24 +105,24 @@ packages:
   quick_blue_macos:
     dependency: "direct main"
     description:
-      path: "../quick_blue_macos"
-      relative: true
-    source: path
-    version: "0.2.0"
+      name: quick_blue_macos
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.3.0-dev.0"
   quick_blue_platform_interface:
     dependency: "direct main"
     description:
-      path: "../quick_blue_platform_interface"
-      relative: true
-    source: path
-    version: "0.2.0"
+      name: quick_blue_platform_interface
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.3.0-dev.0"
   quick_blue_windows:
     dependency: "direct main"
     description:
-      path: "../quick_blue_windows"
-      relative: true
-    source: path
-    version: "0.2.0"
+      name: quick_blue_windows
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.3.0-dev.0"
   sky_engine:
     dependency: transitive
     description: flutter
