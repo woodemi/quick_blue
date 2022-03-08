@@ -4,6 +4,7 @@ import android.bluetooth.*
 import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanResult
 import android.content.Context
+import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
@@ -76,10 +77,19 @@ class QuickBluePlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamHand
         if (knownGatts.find { it.device.address == deviceId } != null) {
           return result.success(null)
         }
-        val gatt = bluetoothManager.adapter
-                .getRemoteDevice(deviceId)
-                .connectGatt(context, false, gattCallback)
-        knownGatts.add(gatt)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+          val gatt = bluetoothManager.adapter
+            .getRemoteDevice(deviceId)
+            .connectGatt(context, false, gattCallback,BluetoothDevice.TRANSPORT_LE)
+          knownGatts.add(gatt)
+        } else {
+          val gatt = bluetoothManager.adapter
+            .getRemoteDevice(deviceId)
+            .connectGatt(context, false, gattCallback)
+          knownGatts.add(gatt)
+        }
+
+
         result.success(null)
         // TODO connecting
       }
@@ -96,6 +106,7 @@ class QuickBluePlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamHand
         val deviceId = call.argument<String>("deviceId")!!
         val gatt = knownGatts.find { it.device.address == deviceId }
                 ?: return result.error("IllegalArgument", "Unknown deviceId: $deviceId", null)
+                
         gatt.discoverServices()
         result.success(null)
       }
@@ -205,17 +216,19 @@ class QuickBluePlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamHand
         Log.v(TAG, "Service " + service.uuid)
         service.characteristics.forEach { characteristic ->
           Log.v(TAG, "    Characteristic ${characteristic.uuid}")
+          sendMessage(messageConnector, mapOf(
+        "deviceId" to gatt.device.address,
+        "ServiceState" to "discovered",
+        "services" to "${service.uuid}",
+        "characteristics" to "${characteristic.uuid}"
+      ))
           characteristic.descriptors.forEach {
             Log.v(TAG, "        Descriptor ${it.uuid}")
           }
         }
       }
 
-      sendMessage(messageConnector, mapOf(
-        "deviceId" to gatt.device.address,
-        "ServiceState" to "discovered",
-        "services" to gatt.services.map { it.uuid.toString() }
-      ))
+      
     }
 
     override fun onMtuChanged(gatt: BluetoothGatt?, mtu: Int, status: Int) {

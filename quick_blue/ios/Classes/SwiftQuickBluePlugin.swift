@@ -213,13 +213,15 @@ extension SwiftQuickBluePlugin: CBPeripheralDelegate {
     
   public func peripheral(_ peripheral: CBPeripheral, didDiscoverCharacteristicsFor service: CBService, error: Error?) {
     for characteristic in service.characteristics! {
-      print("peripheral:didDiscoverCharacteristicsForService (\(service.uuid.uuidStr), \(characteristic.uuid.uuidStr)")
-    }
-    self.messageConnector.sendMessage([
+      print("peripheral:didDiscoverCharacteristicsForService d (\(service.uuid.uuidStr), \(characteristic.uuid.uuidStr)")
+        self.messageConnector.sendMessage([
       "deviceId": peripheral.uuid.uuidString,
       "ServiceState": "discovered",
-      "services": [service.uuid.uuidStr],
+      "services": service.uuid.uuidStr,
+      "characteristics": characteristic.uuid.uuidStr,
     ])
+    }
+
   }
     
   public func peripheral(_ peripheral: CBPeripheral, didWriteValueFor characteristic: CBCharacteristic, error: Error?) {

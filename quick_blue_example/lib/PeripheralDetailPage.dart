@@ -44,12 +44,15 @@ class _PeripheralDetailPageState extends State<PeripheralDetailPage> {
     print('_handleConnectionChange $deviceId, $state');
   }
 
-  void _handleServiceDiscovery(String deviceId, String serviceId) {
-    print('_handleServiceDiscovery $deviceId, $serviceId');
+  void _handleServiceDiscovery(
+      String deviceId, String serviceId, String characteristics) {
+    print('_handleServiceDiscovery :: $serviceId, $characteristics');
   }
 
-  void _handleValueChange(String deviceId, String characteristicId, Uint8List value) {
-    print('_handleValueChange $deviceId, $characteristicId, ${hex.encode(value)}');
+  void _handleValueChange(
+      String deviceId, String characteristicId, Uint8List value) {
+    print(
+        '_handleValueChange $deviceId, $characteristicId, ${hex.encode(value)}');
   }
 
   final serviceUUID = TextEditingController(text: WOODEMI_SERV__COMMAND);

@@ -22,10 +22,25 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
-	<key>NSBluetoothAlwaysUsageDescription</key>
-	<string>example</string>
+    <key>NSBluetoothAlwaysUsageDescription</key>
+	<string>Bluetooth is used to scan for printers and send the data</string>
 	<key>NSBluetoothPeripheralUsageDescription</key>
-	<string>example</string>
+	<string>Bluetooth is used to scan for printers and send the data</string>
+	<key>NSCameraUsageDescription</key>
+	<string>This app requires access to the camera, only for scanning QR code to login quickly.</string>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>Use Local Network for communication with the printer or discovery the printers.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Need Location permission for bluetooth connectivity.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>Need Location permission for bluetooth connectivity.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Need Location permission for bluetooth connectivity.</string>
+    <key>UIBackgroundModes</key>
+	<array>
+		<string>bluetooth-central</string>
+		<string>bluetooth-peripheral</string>
+	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
