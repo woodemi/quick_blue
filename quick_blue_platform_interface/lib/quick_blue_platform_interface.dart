@@ -16,6 +16,9 @@ typedef OnServiceDiscovered = void Function(String deviceId, String serviceId);
 
 typedef OnValueChanged = void Function(String deviceId, String characteristicId, Uint8List value);
 
+/// Log levels for MethodChannelQuickBlue
+enum QuickBlueLogLevel { error, warning, info, debug }
+
 abstract class QuickBluePlatform extends PlatformInterface {
   QuickBluePlatform() : super(token: _token);
 
@@ -29,6 +32,8 @@ abstract class QuickBluePlatform extends PlatformInterface {
     PlatformInterface.verifyToken(instance, _token);
     _instance = instance;
   }
+
+  void setLogLevel(QuickBlueLogLevel level);
 
   Future<bool> isBluetoothAvailable();
 
@@ -53,6 +58,9 @@ abstract class QuickBluePlatform extends PlatformInterface {
   OnValueChanged? onValueChanged;
 
   Future<void> writeValue(String deviceId, String service, String characteristic, Uint8List value, BleOutputProperty bleOutputProperty);
+
+  Future<Uint8List?> readValue(
+      String deviceId, String service, String characteristic);
 
   Future<int> requestMtu(String deviceId, int expectedMtu);
 }

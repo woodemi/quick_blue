@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:quick_blue_platform_interface/quick_blue_platform_interface.dart';
 
@@ -13,6 +14,20 @@ class MethodChannelQuickBlue extends QuickBluePlatform {
     _message_connector.setMessageHandler(_handleConnectorMessage);
   }
 
+  QuickBlueLogLevel _logLevel = QuickBlueLogLevel.debug;
+
+  @override
+  void setLogLevel(QuickBlueLogLevel level) {
+    _logLevel = level;
+  }
+
+  void _log(String message,
+      {QuickBlueLogLevel level = QuickBlueLogLevel.info}) {
+    if (level.index <= _logLevel.index) {
+      debugPrint(message);
+    }
+  }
+
   @override
   Future<bool> isBluetoothAvailable() async {
     bool result = await _method.invokeMethod('isBluetoothAvailable');
@@ -21,14 +36,16 @@ class MethodChannelQuickBlue extends QuickBluePlatform {
 
   @override
   void startScan() {
-    _method.invokeMethod('startScan')
-        .then((_) => print('startScan invokeMethod success'));
+    _method
+        .invokeMethod('startScan')
+        .then((_) => _log('startScan invokeMethod success'));
   }
 
   @override
   void stopScan() {
-    _method.invokeMethod('stopScan')
-        .then((_) => print('stopScan invokeMethod success'));
+    _method
+        .invokeMethod('stopScan')
+        .then((_) => _log('stopScan invokeMethod success'));
   }
 
   Stream<dynamic> _scanResultStream = _event_scanResult.receiveBroadcastStream({'name': 'scanResult'});
@@ -40,25 +57,25 @@ class MethodChannelQuickBlue extends QuickBluePlatform {
   void connect(String deviceId) {
     _method.invokeMethod('connect', {
       'deviceId': deviceId,
-    }).then((_) => print('connect invokeMethod success'));
+    }).then((_) => _log('connect invokeMethod success'));
   }
 
   @override
   void disconnect(String deviceId) {
     _method.invokeMethod('disconnect', {
       'deviceId': deviceId,
-    }).then((_) => print('disconnect invokeMethod success'));
+    }).then((_) => _log('disconnect invokeMethod success'));
   }
 
   @override
   void discoverServices(String deviceId) {
     _method.invokeMethod('discoverServices', {
       'deviceId': deviceId,
-    }).then((_) => print('discoverServices invokeMethod success'));
+    }).then((_) => _log('discoverServices invokeMethod success'));
   }
 
   Future<void> _handleConnectorMessage(dynamic message) async {
-    print('_handleConnectorMessage $message');
+    _log('_handleConnectorMessage $message', level: QuickBlueLogLevel.debug);
     if (message['ConnectionState'] != null) {
       String deviceId = message['deviceId'];
       BlueConnectionState connectionState = BlueConnectionState.parse(message['ConnectionState']);
@@ -89,7 +106,7 @@ class MethodChannelQuickBlue extends QuickBluePlatform {
       'service': service,
       'characteristic': characteristic,
       'bleInputProperty': bleInputProperty.value,
-    }).then((_) => print('setNotifiable invokeMethod success'));
+    }).then((_) => _log('setNotifiable invokeMethod success'));
   }
 
   @override
@@ -101,11 +118,27 @@ class MethodChannelQuickBlue extends QuickBluePlatform {
       'value': value,
       'bleOutputProperty': bleOutputProperty.value,
     }).then((_) {
-      print('writeValue invokeMethod success');
+      _log('writeValue invokeMethod success', level: QuickBlueLogLevel.debug);
     }).catchError((onError) {
       // Characteristic sometimes unavailable on Android
       throw onError;
     });
+  }
+
+  @override
+  Future<Uint8List?> readValue(
+      String deviceId, String service, String characteristic) async {
+    try {
+      final bytes = await _method.invokeMethod('readValue', {
+        'deviceId': deviceId,
+        'service': service,
+        'characteristic': characteristic
+      });
+      _log('readValue, ret=$bytes');
+      return bytes;
+    } catch (e) {
+      _log('readValue, e=$e', level: QuickBlueLogLevel.error);
+    }
   }
 
   // FIXME Close
@@ -116,7 +149,7 @@ class MethodChannelQuickBlue extends QuickBluePlatform {
     _method.invokeMethod('requestMtu', {
       'deviceId': deviceId,
       'expectedMtu': expectedMtu,
-    }).then((_) => print('requestMtu invokeMethod success'));
+    }).then((_) => _log('requestMtu invokeMethod success'));
     return await _mtuConfigController.stream.first;
   }
 }

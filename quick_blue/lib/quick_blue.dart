@@ -10,7 +10,11 @@ export 'models.dart';
 export 'package:quick_blue_platform_interface/models.dart';
 
 class QuickBlue {
-  static Future<bool> isBluetoothAvailable() => QuickBluePlatform.instance.isBluetoothAvailable();
+  static void setLogLevel(QuickBlueLogLevel level) =>
+      QuickBluePlatform.instance.setLogLevel(level);
+
+  static Future<bool> isBluetoothAvailable() =>
+      QuickBluePlatform.instance.isBluetoothAvailable();
 
   static void startScan() => QuickBluePlatform.instance.startScan();
 
@@ -43,8 +47,20 @@ class QuickBlue {
     QuickBluePlatform.instance.onValueChanged = onValueChanged;
   }
 
-  static Future<void> writeValue(String deviceId, String service, String characteristic, Uint8List value, BleOutputProperty bleOutputProperty) {
-    return QuickBluePlatform.instance.writeValue(deviceId, service, characteristic, value, bleOutputProperty);
+  static Future<void> writeValue(
+      String deviceId,
+      String service,
+      String characteristic,
+      Uint8List value,
+      BleOutputProperty bleOutputProperty) {
+    return QuickBluePlatform.instance.writeValue(
+        deviceId, service, characteristic, value, bleOutputProperty);
+  }
+
+  static Future<Uint8List?> readValue(
+      String deviceId, String service, String characteristic) async {
+    return await QuickBluePlatform.instance
+        .readValue(deviceId, service, characteristic);
   }
 
   static Future<int> requestMtu(String deviceId, int expectedMtu) => QuickBluePlatform.instance.requestMtu(deviceId, expectedMtu);
