@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:quick_blue/quick_blue.dart';
@@ -54,6 +55,7 @@ class _MyAppState extends State<MyApp> {
               color: Colors.blue,
             ),
             _buildListView(),
+            _buildPermissionWarning(),
           ],
         ),
       ),
@@ -90,14 +92,27 @@ class _MyAppState extends State<MyApp> {
               Text('${_scanResults[index].name}(${_scanResults[index].rssi})'),
           subtitle: Text(_scanResults[index].deviceId),
           onTap: () {
-            Navigator.push(context, MaterialPageRoute(
-              builder: (context) => PeripheralDetailPage(_scanResults[index].deviceId),
-            ));
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      PeripheralDetailPage(_scanResults[index].deviceId),
+                ));
           },
         ),
         separatorBuilder: (context, index) => Divider(),
         itemCount: _scanResults.length,
       ),
     );
+  }
+
+  Widget _buildPermissionWarning() {
+    if (Platform.isAndroid) {
+      return Container(
+        margin: EdgeInsets.symmetric(horizontal: 10),
+        child: Text('BLUETOOTH_SCAN/ACCESS_FINE_LOCATION needed'),
+      );
+    }
+    return Container();
   }
 }
