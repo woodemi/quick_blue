@@ -67,6 +67,13 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  js:
+    dependency: transitive
+    description:
+      name: js
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.6.4"
   matcher:
     dependency: transitive
     description:
@@ -116,6 +123,13 @@ packages:
       relative: true
     source: path
     version: "0.3.1+1"
+  quick_blue_web:
+    dependency: transitive
+    description:
+      path: "../quick_blue_web"
+      relative: true
+    source: path
+    version: "0.3.0-dev.0"
   quick_blue_windows:
     dependency: "direct main"
     description:
@@ -184,6 +198,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.1.1"
+  web_blue:
+    dependency: transitive
+    description:
+      name: web_blue
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.2.0"
 sdks:
-  dart: ">=2.14.0 <3.0.0"
+  dart: ">=2.16.0-100.0.dev <3.0.0"
   flutter: ">=2.0.0"
