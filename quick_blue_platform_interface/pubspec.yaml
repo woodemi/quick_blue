@@ -3,6 +3,7 @@ description: A common platform interface for the quick_blue plugin.
 version: 0.3.1+1
 homepage: https://github.com/woodemi/quick_blue
 repository: https://github.com/woodemi/quick_blue/tree/master/quick_blue_platform_interface
+publish_to: none
 
 environment:
   sdk: ">=2.12.0 <3.0.0"
@@ -12,6 +13,8 @@ dependencies:
   flutter:
     sdk: flutter
   plugin_platform_interface: ^2.0.0
+  quick_blue_web:
+    path: ../quick_blue_web
 
 dev_dependencies:
   flutter_test:
