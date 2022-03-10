@@ -224,35 +224,40 @@ class _PeripheralDetailPageState extends State<PeripheralDetailPage> {
             Divider(),
             Padding(
               padding: const EdgeInsets.all(8.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: <Widget>[
-                  ElevatedButton(
-                    child: Text('discoverServices'),
-                    onPressed: () {
-                      discoverServices();
-                    },
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(18.0),
-                    child: ElevatedButton(
-                      child: Text('Services'),
+              child: FittedBox(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: <Widget>[
+                    ElevatedButton(
+                      child: Text('discoverServices'),
                       onPressed: () {
-                        QuickBlue.stopScan();
+                        discoverServices();
                       },
-                      style: ElevatedButton.styleFrom(
-                        primary: Colors.grey,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(18.0),
+                      child: ElevatedButton(
+                        child: Text('Services'),
+                        onPressed: () {
+                          QuickBlue.stopScan();
+                        },
+                        style: ElevatedButton.styleFrom(
+                          primary: Colors.grey,
+                        ),
                       ),
                     ),
-                  ),
-                  ElevatedButton(
-                    child: Text('setNotifiable'),
-                    onPressed: () {
-                      QuickBlue.setNotifiable(widget.deviceId, serviceUUID.text,
-                          characteristicUUID.text, BleInputProperty.indication);
-                    },
-                  ),
-                ],
+                    ElevatedButton(
+                      child: Text('setNotifiable'),
+                      onPressed: () {
+                        QuickBlue.setNotifiable(
+                            widget.deviceId,
+                            serviceUUID.text,
+                            characteristicUUID.text,
+                            BleInputProperty.indication);
+                      },
+                    ),
+                  ],
+                ),
               ),
             ),
             ListView.builder(

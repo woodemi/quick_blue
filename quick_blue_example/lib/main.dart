@@ -97,6 +97,9 @@ class _MyAppState extends State<MyApp> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: <Widget>[
+          SizedBox(
+            width: 10,
+          ),
           ElevatedButton(
             child: Text('Start Scan'),
             onPressed: () {
@@ -108,7 +111,8 @@ class _MyAppState extends State<MyApp> {
             builder: (context, snapshot) {
               var available = snapshot.data?.toString() ?? '...';
               return Padding(
-                padding: const EdgeInsets.all(18.0),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 18.0, vertical: 7),
                 child: ElevatedButton(
                   child: Text('Ble Availability : $available'),
                   onPressed: () {
@@ -126,6 +130,9 @@ class _MyAppState extends State<MyApp> {
             onPressed: () {
               QuickBlue.stopScan();
             },
+          ),
+          SizedBox(
+            width: 10,
           ),
         ],
       ),
@@ -165,7 +172,7 @@ class _MyAppState extends State<MyApp> {
     if (kIsWeb) return Container();
     if (Platform.isAndroid) {
       return Container(
-        margin: EdgeInsets.symmetric(horizontal: 10),
+        margin: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
         child: Text('BLUETOOTH_SCAN/ACCESS_FINE_LOCATION needed'),
       );
     }
