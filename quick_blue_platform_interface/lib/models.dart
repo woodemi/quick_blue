@@ -29,8 +29,6 @@ class BleInputProperty {
 class BleOutputProperty {
   static const withResponse = BleOutputProperty._('withResponse');
   static const withoutResponse = BleOutputProperty._('withoutResponse');
-
   final String value;
-
   const BleOutputProperty._(this.value);
 }

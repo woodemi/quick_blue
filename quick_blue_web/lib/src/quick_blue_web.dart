@@ -3,7 +3,6 @@
 import 'dart:async';
 import 'dart:html';
 import 'dart:js';
-import 'dart:js_util';
 import 'dart:typed_data';
 import 'package:quick_blue_platform_interface/quick_blue_platform_interface.dart';
 import 'package:quick_blue_web/src/model/BlueScanResultParse.dart';
@@ -172,10 +171,13 @@ class QuickBlueWeb extends QuickBluePlatform {
   }
 
   ///`Helper Methods`
-  ///
+
+
   final EventListener _handleValueChanged = allowInterop((event) {
     print(event);
   });
+  
+
   BlueDevice? getBlueDevice(String id) => blueDevices
       .firstWhereOrNull((element) => element.getPropertyT('id') == id);
 
