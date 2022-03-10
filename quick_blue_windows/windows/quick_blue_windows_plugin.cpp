@@ -155,6 +155,7 @@ class QuickBlueWindowsPlugin : public flutter::Plugin, public flutter::StreamHan
 
   winrt::fire_and_forget SetNotifiableAsync(BluetoothDeviceAgent& bluetoothDeviceAgent, std::string service, std::string characteristic, std::string bleInputProperty);
   winrt::fire_and_forget RequestMtuAsync(BluetoothDeviceAgent& bluetoothDeviceAgent, uint64_t expectedMtu);
+  winrt::fire_and_forget ReadValueAsync(BluetoothDeviceAgent& bluetoothDeviceAgent, std::string service, std::string characteristic);
   winrt::fire_and_forget WriteValueAsync(BluetoothDeviceAgent& bluetoothDeviceAgent, std::string service, std::string characteristic, std::vector<uint8_t> value, std::string bleOutputProperty);
   void QuickBlueWindowsPlugin::GattCharacteristic_ValueChanged(GattCharacteristic sender, GattValueChangedEventArgs args);
 };
@@ -272,6 +273,19 @@ void QuickBlueWindowsPlugin::HandleMethodCall(
     }
 
     RequestMtuAsync(*it->second, expectedMtu);
+    result->Success(nullptr);
+  } else if (method_name.compare("readValue") == 0) {
+    auto args = std::get<EncodableMap>(*method_call.arguments());
+    auto deviceId = std::get<std::string>(args[EncodableValue("deviceId")]);
+    auto service = std::get<std::string>(args[EncodableValue("service")]);
+    auto characteristic = std::get<std::string>(args[EncodableValue("characteristic")]);
+    auto it = connectedDevices.find(std::stoull(deviceId));
+    if (it == connectedDevices.end()) {
+      result->Error("IllegalArgument", "Unknown devicesId:" + deviceId);
+      return;
+    }
+
+    ReadValueAsync(*it->second, service, characteristic);
     result->Success(nullptr);
   } else if (method_name.compare("writeValue") == 0) {
     auto args = std::get<EncodableMap>(*method_call.arguments());
@@ -417,6 +431,20 @@ winrt::fire_and_forget QuickBlueWindowsPlugin::SetNotifiableAsync(BluetoothDevic
   } else {
     gattCharacteristic.ValueChanged(std::exchange(bluetoothDeviceAgent.valueChangedTokens[characteristic], {}));
   }
+}
+
+winrt::fire_and_forget QuickBlueWindowsPlugin::ReadValueAsync(BluetoothDeviceAgent& bluetoothDeviceAgent, std::string service, std::string characteristic) {
+  auto gattCharacteristic = co_await bluetoothDeviceAgent.GetCharacteristicAsync(service, characteristic);
+  auto readValueResult = co_await gattCharacteristic.ReadValueAsync();
+  auto bytes = to_bytevc(readValueResult.Value());
+  OutputDebugString((L"ReadValueAsync " + winrt::to_hstring(characteristic) + L", " + winrt::to_hstring(to_hexstring(bytes)) + L"\n").c_str());
+  message_connector_->Send(EncodableMap{
+    {"deviceId", std::to_string(gattCharacteristic.Service().Device().BluetoothAddress())},
+    {"characteristicValue", EncodableMap{
+      {"characteristic", characteristic},
+      {"value", bytes},
+    }},
+  });
 }
 
 winrt::fire_and_forget QuickBlueWindowsPlugin::WriteValueAsync(BluetoothDeviceAgent& bluetoothDeviceAgent, std::string service, std::string characteristic, std::vector<uint8_t> value, std::string bleOutputProperty) {
