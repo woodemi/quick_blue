@@ -1,3 +1,7 @@
+## [0.3.1] - 2022.3.10
+
+- Define `readValue` for Android/iOS/macOS/Windows
+
 ## [0.3.0-dev.0] - 2022.3.3
 
 - Migerate to Null-Safety

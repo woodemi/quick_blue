@@ -1,6 +1,6 @@
 name: quick_blue_windows
-description: A new flutter plugin project.
-version: 0.3.0-dev.0
+description: Windows implementation of the quick_blue plugin.
+version: 0.3.1
 homepage: https://github.com/woodemi/quick_blue
 repository: https://github.com/woodemi/quick_blue/tree/master/quick_blue_windows
 

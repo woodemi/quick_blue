@@ -1,3 +1,8 @@
+## [0.3.1] - 2022.3.10
+
+- Add `readValue` for Android/iOS/macOS/Windows
+- Fix missing writeOptions on Windows
+
 ## [0.3.0-dev.0] - 2022.3.3
 
 - Migerate to Null-Safety
