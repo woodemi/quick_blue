@@ -1,3 +1,8 @@
+## [0.3.1+1] - 2022.3.10
+
+- Fix version typo
+- Fix missing writeOptions on Windows
+
 ## [0.3.1] - 2022.3.10
 
 - Impl `readValue`

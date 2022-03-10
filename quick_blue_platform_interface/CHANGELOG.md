@@ -1,3 +1,7 @@
+## [0.3.1+1] - 2022.3.10
+
+- Fix version typo
+
 ## [0.3.1] - 2022.3.10
 
 - Define `readValue` for Android/iOS/macOS/Windows
