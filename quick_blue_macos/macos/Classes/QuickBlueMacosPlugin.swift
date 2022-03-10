@@ -124,6 +124,17 @@ public class QuickBlueMacosPlugin: NSObject, FlutterPlugin {
       let mtu = peripheral.maximumWriteValueLength(for: .withoutResponse)
       print("peripheral.maximumWriteValueLengthForType:CBCharacteristicWriteWithoutResponse \(mtu)")
       messageConnector.sendMessage(["mtuConfig": mtu + GATT_HEADER_LENGTH])
+    case "readValue":
+      let arguments = call.arguments as! Dictionary<String, Any>
+      let deviceId = arguments["deviceId"] as! String
+      let service = arguments["service"] as! String
+      let characteristic = arguments["characteristic"] as! String
+      guard let peripheral = discoveredPeripherals[deviceId] else {
+        result(FlutterError(code: "IllegalArgument", message: "Unknown deviceId:\(deviceId)", details: nil))
+        return
+      }
+      peripheral.readValue(for: peripheral.getCharacteristic(characteristic, of: service))
+      result(nil)
     case "writeValue":
       let arguments = call.arguments as! Dictionary<String, Any>
       let deviceId = arguments["deviceId"] as! String

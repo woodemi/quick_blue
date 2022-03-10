@@ -1,5 +1,6 @@
 package com.example.quick_blue
 
+import android.annotation.SuppressLint
 import android.bluetooth.*
 import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanResult
@@ -19,6 +20,7 @@ import java.util.*
 private const val TAG = "QuickBluePlugin"
 
 /** QuickBluePlugin */
+@SuppressLint("MissingPermission")
 class QuickBluePlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamHandler {
   /// The MethodChannel that will the communication between Flutter and native Android
   ///
@@ -116,6 +118,20 @@ class QuickBluePlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamHand
                 ?: return result.error("IllegalArgument", "Unknown deviceId: $deviceId", null)
         gatt.requestMtu(expectedMtu)
         result.success(null)
+      }
+      "readValue" -> {
+        val deviceId = call.argument<String>("deviceId")!!
+        val service = call.argument<String>("service")!!
+        val characteristic = call.argument<String>("characteristic")!!
+        val gatt = knownGatts.find { it.device.address == deviceId }
+                ?: return result.error("IllegalArgument", "Unknown deviceId: $deviceId", null)
+        val readResult = gatt.getCharacteristic(service to characteristic)?.let {
+          gatt.readCharacteristic(it)
+        }
+        if (readResult == true)
+          result.success(null)
+        else
+          result.error("Characteristic unavailable", null, null)
       }
       "writeValue" -> {
         val deviceId = call.argument<String>("deviceId")!!
@@ -224,6 +240,17 @@ class QuickBluePlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamHand
           "mtuConfig" to mtu
         ))
       }
+    }
+
+    override fun onCharacteristicRead(gatt: BluetoothGatt, characteristic: BluetoothGattCharacteristic, status: Int) {
+      Log.v(TAG, "onCharacteristicRead ${characteristic.uuid}, ${characteristic.value.contentToString()}")
+      sendMessage(messageConnector, mapOf(
+        "deviceId" to gatt.device.address,
+        "characteristicValue" to mapOf(
+          "characteristic" to characteristic.uuid.toString(),
+          "value" to characteristic.value
+        )
+      ))
     }
 
     override fun onCharacteristicWrite(gatt: BluetoothGatt?, characteristic: BluetoothGattCharacteristic, status: Int) {

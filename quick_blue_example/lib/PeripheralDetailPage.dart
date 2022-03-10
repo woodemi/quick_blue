@@ -4,6 +4,11 @@ import 'package:convert/convert.dart';
 import 'package:flutter/material.dart';
 import 'package:quick_blue/quick_blue.dart';
 
+String gssUuid(String code) => '0000$code-0000-1000-8000-00805f9b34fb';
+
+final GSS_SERV__BATTERY = gssUuid('180f');
+final GSS_CHAR__BATTERY_LEVEL = gssUuid('2a19');
+
 const WOODEMI_SUFFIX = 'ba5e-f4ee-5ca1-eb1e5e4b1ce0';
 
 const WOODEMI_SERV__COMMAND = '57444d01-$WOODEMI_SUFFIX';
@@ -127,6 +132,15 @@ class _PeripheralDetailPageState extends State<PeripheralDetailPage> {
               QuickBlue.writeValue(
                   widget.deviceId, serviceUUID.text, characteristicUUID.text,
                   value, BleOutputProperty.withResponse);
+            },
+          ),
+          RaisedButton(
+            child: Text('readValue battery'),
+            onPressed: () async {
+              await QuickBlue.readValue(
+                  widget.deviceId,
+                  GSS_SERV__BATTERY,
+                  GSS_CHAR__BATTERY_LEVEL);
             },
           ),
           RaisedButton(
