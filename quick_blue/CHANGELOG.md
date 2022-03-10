@@ -1,4 +1,8 @@
-## [0.3.1] - 2022.3.10
+## [0.3.1+2] - 2022.3.10
+
+- Fix README with `readValue`
+
+## [0.3.1+1] - 2022.3.10
 
 - Add `readValue` for Android/iOS/macOS/Windows
 - Fix missing writeOptions on Windows

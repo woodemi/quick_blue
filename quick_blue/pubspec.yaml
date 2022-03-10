@@ -1,6 +1,6 @@
 name: quick_blue
 description: A cross-platform BluetoothLE plugin for Flutter.
-version: 0.3.1+1
+version: 0.3.1+2
 homepage: https://github.com/woodemi/quick_blue
 repository: https://github.com/woodemi/quick_blue/tree/master/quick_blue
 

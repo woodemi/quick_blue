@@ -55,6 +55,16 @@ QuickBlue.discoverServices(deviceId);
 
 ## Transfer data between BLE central & peripheral
 
+- Pull data from peripheral of `deviceId`
+
+> Data would receive within value handler of `QuickBlue.setValueHandler`
+> Because it is how [peripheral(_:didUpdateValueFor:error:)](https://developer.apple.com/documentation/corebluetooth/cbperipheraldelegate/1518708-peripheral) work on iOS/macOS
+
+```dart
+// Data would receive from value handler of `QuickBlue.setValueHandler`
+QuickBlue.readValue(deviceId, serviceId, characteristicId);
+```
+
 - Send data to peripheral of `deviceId`
 
 ```dart
