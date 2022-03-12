@@ -361,25 +361,25 @@ namespace
     OutputDebugString((L"Received " + winrt::to_hstring(args.BluetoothAddress()) + L"\n").c_str());
     auto manufacturer_data = parseManufacturerData(args.Advertisement());
     auto device = co_await BluetoothLEDevice::FromBluetoothAddressAsync(args.BluetoothAddress());
+
+    if (scan_result_sink_)
+    {
     if (device == nullptr)
-    {
+        {
+          scan_result_sink_->Success(EncodableMap{
+              {"name", winrt::to_string(args.Advertisement().LocalName())},
+              {"deviceId", std::to_string(args.BluetoothAddress())},
+              {"manufacturerData", manufacturer_data},
+              {"rssi", args.RawSignalStrengthInDBm()},
+          });
+        }else{
       scan_result_sink_->Success(EncodableMap{
-          {"name", winrt::to_string(args.Advertisement().LocalName())},
-          // {"name", winrt::to_string(dd.Name())},
-          {"deviceId", std::to_string(args.BluetoothAddress())},
-          {"manufacturerData", manufacturer_data},
-          {"rssi", args.RawSignalStrengthInDBm()},
-      });
-    }
-    else if (scan_result_sink_)
-    {
-      scan_result_sink_->Success(EncodableMap{
-          // {"name", winrt::to_string(args.Advertisement().LocalName())},
           {"name", winrt::to_string(device.Name())},
           {"deviceId", std::to_string(args.BluetoothAddress())},
           {"manufacturerData", manufacturer_data},
           {"rssi", args.RawSignalStrengthInDBm()},
       });
+      }
     }
   }
 
