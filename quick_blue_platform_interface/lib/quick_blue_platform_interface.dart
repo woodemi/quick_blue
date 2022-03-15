@@ -1,9 +1,11 @@
 library quick_blue_platform_interface;
 
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
+import 'package:quick_blue_linux/linux.dart';
 import 'package:quick_blue_web/web.dart';
 
 import 'method_channel_quick_blue.dart';
@@ -25,8 +27,12 @@ abstract class QuickBluePlatform extends PlatformInterface {
 
   static final Object _token = Object();
 
-  static QuickBluePlatform _instance =
-      kIsWeb ? QuickBlueWeb() : MethodChannelQuickBlue();
+  ///Added Platform Interface for Different Platfroms
+  static QuickBluePlatform _instance = kIsWeb
+      ? QuickBlueWeb()
+      : Platform.isLinux
+          ? QuickBlueLinux()
+          : MethodChannelQuickBlue();
 
   static QuickBluePlatform get instance => _instance;
 
