@@ -23,11 +23,11 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-    _subscription = QuickBlue.scanResultStream.listen((result) {
-      if (!_scanResults.any((r) => r.deviceId == result.deviceId)) {
-        setState(() => _scanResults.add(result));
-      }
-    });
+    // _subscription = QuickBlue.scanResultStream.listen((result) {
+    //   if (!_scanResults.any((r) => r.deviceId == result.deviceId)) {
+    //     setState(() => _scanResults.add(result));
+    //   }
+    // });
   }
 
   @override
