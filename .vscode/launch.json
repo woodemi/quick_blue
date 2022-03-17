@@ -1,0 +1,128 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "quick_blue",
+            "cwd": "quick_blue",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "quick_blue (profile mode)",
+            "cwd": "quick_blue",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "quick_blue (release mode)",
+            "cwd": "quick_blue",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        },
+        {
+            "name": "quick_blue_example",
+            "cwd": "quick_blue_example",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "quick_blue_example (profile mode)",
+            "cwd": "quick_blue_example",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "quick_blue_example (release mode)",
+            "cwd": "quick_blue_example",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        },
+        {
+            "name": "quick_blue_macos",
+            "cwd": "quick_blue_macos",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "quick_blue_macos (profile mode)",
+            "cwd": "quick_blue_macos",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "quick_blue_macos (release mode)",
+            "cwd": "quick_blue_macos",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        },
+        {
+            "name": "quick_blue_platform_interface",
+            "cwd": "quick_blue_platform_interface",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "quick_blue_platform_interface (profile mode)",
+            "cwd": "quick_blue_platform_interface",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "quick_blue_platform_interface (release mode)",
+            "cwd": "quick_blue_platform_interface",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        },
+        {
+            "name": "quick_blue_web",
+            "cwd": "quick_blue_web",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "quick_blue_web (profile mode)",
+            "cwd": "quick_blue_web",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "quick_blue_web (release mode)",
+            "cwd": "quick_blue_web",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        },
+        {
+            "name": "quick_blue_windows",
+            "cwd": "quick_blue_windows",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "quick_blue_windows (profile mode)",
+            "cwd": "quick_blue_windows",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "quick_blue_windows (release mode)",
+            "cwd": "quick_blue_windows",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        }
+    ]
+}
