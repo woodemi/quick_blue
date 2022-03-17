@@ -2,8 +2,20 @@
   "configVersion": 2,
   "packages": [
     {
+      "name": "args",
+      "rootUri": "file:///home/rohit/snap/flutter/common/flutter/.pub-cache/hosted/pub.dartlang.org/args-2.3.0",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
       "name": "async",
       "rootUri": "file:///home/rohit/snap/flutter/common/flutter/.pub-cache/hosted/pub.dartlang.org/async-2.8.2",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "bluez",
+      "rootUri": "file:///home/rohit/snap/flutter/common/flutter/.pub-cache/hosted/pub.dartlang.org/bluez-0.7.7",
       "packageUri": "lib/",
       "languageVersion": "2.12"
     },
@@ -38,8 +50,20 @@
       "languageVersion": "2.12"
     },
     {
+      "name": "dbus",
+      "rootUri": "file:///home/rohit/snap/flutter/common/flutter/.pub-cache/hosted/pub.dartlang.org/dbus-0.7.1",
+      "packageUri": "lib/",
+      "languageVersion": "2.15"
+    },
+    {
       "name": "fake_async",
       "rootUri": "file:///home/rohit/snap/flutter/common/flutter/.pub-cache/hosted/pub.dartlang.org/fake_async-1.2.0",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "ffi",
+      "rootUri": "file:///home/rohit/snap/flutter/common/flutter/.pub-cache/hosted/pub.dartlang.org/ffi-1.1.2",
       "packageUri": "lib/",
       "languageVersion": "2.12"
     },
@@ -86,6 +110,12 @@
       "languageVersion": "2.12"
     },
     {
+      "name": "petitparser",
+      "rootUri": "file:///home/rohit/snap/flutter/common/flutter/.pub-cache/hosted/pub.dartlang.org/petitparser-4.4.0",
+      "packageUri": "lib/",
+      "languageVersion": "2.14"
+    },
+    {
       "name": "plugin_platform_interface",
       "rootUri": "file:///home/rohit/snap/flutter/common/flutter/.pub-cache/hosted/pub.dartlang.org/plugin_platform_interface-2.1.2",
       "packageUri": "lib/",
@@ -94,6 +124,12 @@
     {
       "name": "quick_blue_platform_interface",
       "rootUri": "../../quick_blue_platform_interface",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "quick_blue_web",
+      "rootUri": "../../quick_blue_web",
       "packageUri": "lib/",
       "languageVersion": "2.12"
     },
@@ -158,13 +194,19 @@
       "languageVersion": "2.15"
     },
     {
-      "name": "quick_blue_web",
+      "name": "xml",
+      "rootUri": "file:///home/rohit/snap/flutter/common/flutter/.pub-cache/hosted/pub.dartlang.org/xml-5.3.1",
+      "packageUri": "lib/",
+      "languageVersion": "2.14"
+    },
+    {
+      "name": "quick_blue_linux",
       "rootUri": "../",
       "packageUri": "lib/",
       "languageVersion": "2.12"
     }
   ],
-  "generated": "2022-03-15T07:02:53.206663Z",
+  "generated": "2022-03-15T07:04:44.548310Z",
   "generator": "pub",
   "generatorVersion": "2.16.1"
 }
