@@ -1,14 +1,69 @@
+import 'dart:typed_data';
 
-import 'dart:async';
+import 'package:quick_blue_platform_interface/quick_blue_platform_interface.dart';
 
-import 'package:flutter/services.dart';
+class QuickBlueLinux extends QuickBluePlatform {
+  @override
+  void connect(String deviceId) {
+    // TODO: implement connect
+    throw UnimplementedError();
+  }
 
-class QuickBlueLinux {
-  static const MethodChannel _channel =
-      const MethodChannel('quick_blue_linux');
+  @override
+  void disconnect(String deviceId) {
+    // TODO: implement disconnect
+    throw UnimplementedError();
+  }
 
-  static Future<String> get platformVersion async {
-    final String version = await _channel.invokeMethod('getPlatformVersion');
-    return version;
+  @override
+  void discoverServices(String deviceId) {
+    // TODO: implement discoverServices
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<bool> isBluetoothAvailable() {
+    // TODO: implement isBluetoothAvailable
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> readValue(String deviceId, String service, String characteristic) {
+    // TODO: implement readValue
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<int> requestMtu(String deviceId, int expectedMtu) {
+    // TODO: implement requestMtu
+    throw UnimplementedError();
+  }
+
+  @override
+  // TODO: implement scanResultStream
+  Stream get scanResultStream => throw UnimplementedError();
+
+  @override
+  Future<void> setNotifiable(String deviceId, String service, String characteristic, BleInputProperty bleInputProperty) {
+    // TODO: implement setNotifiable
+    throw UnimplementedError();
+  }
+
+  @override
+  void startScan() {
+    // TODO: implement startScan
+    throw UnimplementedError();
+  }
+
+  @override
+  void stopScan() {
+    // TODO: implement stopScan
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> writeValue(String deviceId, String service, String characteristic, Uint8List value, BleOutputProperty bleOutputProperty) {
+    // TODO: implement writeValue
+    throw UnimplementedError();
   }
 }
