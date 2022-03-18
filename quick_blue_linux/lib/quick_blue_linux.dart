@@ -4,7 +4,6 @@ import 'dart:typed_data';
 import 'package:quick_blue_platform_interface/quick_blue_platform_interface.dart';
 import 'dart:async';
 import 'package:bluez/bluez.dart';
-import 'package:rxdart/rxdart.dart';
 
 class QuickBlueLinux extends QuickBluePlatform {
   ///`Bluez Client`
@@ -173,11 +172,10 @@ class QuickBlueLinux extends QuickBluePlatform {
     } else {
       if (bleInputProperty.value == 'notification') {
         ///Subscribe to the characteristic
-
-        charactersticStream(c, autoStop: 8).listen((event) {
-          Uint8List data = Uint8List.fromList(event);
-          OnCharactersticValue(deviceId, characteristic, data);
-        });
+        ///TODO: Add Stream Here ,checkout charactersticStream Method
+        var event = await c.readValue();
+        Uint8List data = Uint8List.fromList(event);
+        OnCharactersticValue(deviceId, characteristic, data);
       } else if (bleInputProperty.value == 'disabled') {
         ///UnSubscribe to the characteristic
 
@@ -187,11 +185,12 @@ class QuickBlueLinux extends QuickBluePlatform {
 
   ///`Helper Methods`
 
-  Stream charactersticStream(BlueZGattCharacteristic c, {int autoStop = 5}) {
-    return RepeatStream((int repeatCount) => Stream.value(c.value), autoStop)
-        .distinctUnique()
-        .doOnListen(() => c.startNotify())
-        .doOnDone(() => c.stopNotify());
+  charactersticStream(BlueZGattCharacteristic c, {int autoStop = 5}) {
+    // return RepeatStream((int repeatCount) => Stream.value(c.value), autoStop)
+    //     .distinctUnique()
+    //     .doOnListen(() => c.startNotify())
+    //     .doOnDone(() => c.stopNotify());
+    //return Stream.periodic(Duration(seconds: 1));
   }
 
   BlueZDevice? _getDeviceWithId(String id) {
