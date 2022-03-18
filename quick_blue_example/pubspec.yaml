@@ -37,6 +37,8 @@ dependency_overrides:
     path: ../quick_blue_windows
   quick_blue_macos:
     path: ../quick_blue_macos
+  quick_blue_linux:
+    path: ../quick_blue_linux
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
