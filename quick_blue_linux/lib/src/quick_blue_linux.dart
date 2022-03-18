@@ -8,32 +8,37 @@ import 'dart:typed_data';
 import 'package:bluez/bluez.dart';
 import 'package:quick_blue_linux/src/model/BlueScanResultParse.dart';
 import 'package:quick_blue_platform_interface/quick_blue_platform_interface.dart';
+import 'package:rxdart/rxdart.dart';
 
 class QuickBlueLinux extends QuickBluePlatform {
-  bool isInitialised = false;
+  ///`Bluez Client`
   BlueZClient _client = BlueZClient();
 
-  initBluez() async {
-    if (!isInitialised) {
-      await _client.connect();
-      QuickBlueLinux();
-      isInitialised = true;
-    }
-  }
-
+  ///`Streams`
   StreamSubscription<BlueZDevice>? _deviceAddedSubscription;
   StreamSubscription<BlueZDevice>? _deviceRemovedSubscription;
-
   final _scanController = StreamController.broadcast();
   final _charValueUpdateController = StreamController.broadcast();
 
-  QuickBlueLinux() {
-    _deviceAddedSubscription = _client.deviceAdded.listen(_deviceAdded);
-    _deviceRemovedSubscription = _client.deviceRemoved.listen(_deviceRemoved);
+  ///`Initialise Bluez`
+  bool isInitialised = false;
+  initBluez() async {
+    if (!isInitialised) {
+      await _client.connect();
+      print('Quick_Ble_Linux_Initialised');
 
-    _scanController.onListen = () {
-      _client.devices.forEach(_sendDeviceState);
-    };
+      _deviceAddedSubscription = _client.deviceAdded.listen(_deviceAdded);
+      _deviceRemovedSubscription = _client.deviceRemoved.listen(_deviceRemoved);
+
+      _scanController.onListen = () {
+        _client.devices.forEach(_sendDeviceState);
+      };
+
+      _charValueUpdateController.onListen = () {};
+      _charValueUpdateController.onCancel = () {};
+
+      isInitialised = true;
+    }
   }
 
   ///`Completed`
@@ -62,10 +67,11 @@ class QuickBlueLinux extends QuickBluePlatform {
     await initBluez();
     print('Started Scanning');
     for (final adapter in _client.adapters) {
-      adapter
-        ..setDiscoveryFilter(
-            uuids: optionalServices.map((uuid) => uuid.toString()).toList())
-        ..startDiscovery();
+      try {
+        adapter.startDiscovery();
+      } catch (e) {
+        print('Start Scan Error : $e');
+      }
     }
   }
 
@@ -74,19 +80,23 @@ class QuickBlueLinux extends QuickBluePlatform {
     await initBluez();
     print('Stopped Scanning');
     for (final adapter in _client.adapters) {
-      adapter.stopDiscovery();
+      try {
+        adapter.stopDiscovery();
+      } catch (e) {
+        print('Start Scan Error : $e');
+      }
     }
   }
 
   @override
   void connect(String deviceId) async {
     await initBluez();
+    print('Try Connecting');
     final device = _getDeviceWithId(deviceId);
     if (device == null) {
       throw 'No such device $deviceId';
     } else {
-      device.connect();
-      _checkDeviceConnectionState(device);
+      await device.connect();
     }
   }
 
@@ -149,7 +159,8 @@ class QuickBlueLinux extends QuickBluePlatform {
       throw 'No such characteristic';
     } else {
       c.readValue().then((value) {
-        OnCharactersticValue(deviceId, characteristic, value as Uint8List);
+        Uint8List data = Uint8List.fromList(value);
+        OnCharactersticValue(deviceId, characteristic, data);
       }).catchError((Object error) {
         throw error.toString();
       });
@@ -163,20 +174,25 @@ class QuickBlueLinux extends QuickBluePlatform {
       String characteristic, BleInputProperty bleInputProperty) async {
     BlueZGattCharacteristic? c =
         _getCharacteristic(deviceId, service, characteristic);
-
     if (c == null) {
       throw 'No such characteristic';
     } else {
-      ///TODO: Convert This To Stream
-      c.readValue().then((value) {
-        OnCharactersticValue(deviceId, characteristic, value as Uint8List);
-      }).catchError((Object error) {
-        throw error.toString();
+      ///We dont have a Stop Stream Option , so this stream will stop in 8 Seconds automatically
+      charactersticStream(c, autoStop: 8).listen((event) {
+        Uint8List data = Uint8List.fromList(event);
+        OnCharactersticValue(deviceId, characteristic, data);
       });
     }
   }
 
   ///`Helper Methods`
+
+  Stream charactersticStream(BlueZGattCharacteristic c, {int autoStop = 5}) {
+    return RepeatStream((int repeatCount) => Stream.value(c.value), autoStop)
+        .distinctUnique()
+        .doOnListen(() => c.startNotify())
+        .doOnDone(() => c.stopNotify());
+  }
 
   BlueZDevice? _getDeviceWithId(String id) {
     for (final device in _client.devices) {
@@ -238,7 +254,7 @@ class QuickBlueLinux extends QuickBluePlatform {
   void _sendDeviceState(BlueZDevice device) {
     BlueScanResultParse result = BlueScanResultParse(
       deviceId: device.address,
-      name: device.alias != '' ? device.alias : device.name,
+      name: device.alias,
       manufacturerData: Uint8List(0),
       rssi: device.rssi,
     );

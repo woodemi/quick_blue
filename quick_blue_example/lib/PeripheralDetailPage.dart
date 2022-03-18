@@ -31,6 +31,7 @@ class PeripheralDetailPage extends StatefulWidget {
 
 class _PeripheralDetailPageState extends State<PeripheralDetailPage> {
   bool isConnected = false;
+  bool parseValue = false;
   var discoveredServices = [];
   var readValues = [];
 
@@ -51,7 +52,7 @@ class _PeripheralDetailPageState extends State<PeripheralDetailPage> {
   }
 
   void _handleConnectionChange(String deviceId, BlueConnectionState state) {
-    print('_handleConnectionChange $deviceId, $state');
+    print('_handleConnectionChange $deviceId, ${state.value}');
     setState(() {
       isConnected = (state == BlueConnectionState.connected);
     });
@@ -60,16 +61,20 @@ class _PeripheralDetailPageState extends State<PeripheralDetailPage> {
   void _handleServiceDiscovery(String deviceId, String serviceId) {
     print('_handleServiceDiscovery $deviceId, $serviceId');
     setState(() {
-      discoveredServices.add(serviceId);
+      if (!discoveredServices.contains(serviceId)) {
+        discoveredServices.add(serviceId);
+      }
     });
   }
 
   void _handleValueChange(
       String deviceId, String characteristicId, Uint8List value) {
     String s = new String.fromCharCodes(value);
+    String data =
+        parseValue ? s + '\n' + 'raw :  ${value.toString()}' : value.toString();
     print('_handleValueChange $deviceId, $characteristicId, $s');
     setState(() {
-      readValues.add(s);
+      readValues.add(data);
     });
   }
 
@@ -165,6 +170,15 @@ class _PeripheralDetailPageState extends State<PeripheralDetailPage> {
                 ),
               ),
             ),
+            Divider(),
+            CheckboxListTile(
+                title: Text('Parse Value'),
+                value: parseValue,
+                onChanged: (value) {
+                  setState(() {
+                    parseValue = value ?? false;
+                  });
+                }),
             Divider(),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,

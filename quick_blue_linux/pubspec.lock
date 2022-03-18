@@ -21,7 +21,7 @@ packages:
       name: bluez
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.7.7"
+    version: "0.7.8"
   boolean_selector:
     dependency: transitive
     description:
@@ -151,6 +151,13 @@ packages:
       relative: true
     source: path
     version: "0.3.0-dev.0"
+  rxdart:
+    dependency: "direct main"
+    description:
+      name: rxdart
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.27.3"
   sky_engine:
     dependency: transitive
     description: flutter

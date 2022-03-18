@@ -12,7 +12,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  bluez: ^0.7.7
+  bluez: ^0.7.8
+  rxdart: ^0.27.3
   quick_blue_platform_interface:
     path: ../quick_blue_platform_interface
 

@@ -115,9 +115,7 @@ class _MyAppState extends State<MyApp> {
                     const EdgeInsets.symmetric(horizontal: 18.0, vertical: 7),
                 child: ElevatedButton(
                   child: Text('Ble Availability : $available'),
-                  onPressed: () {
-                    QuickBlue.stopScan();
-                  },
+                  onPressed: () {},
                   style: ElevatedButton.styleFrom(
                     primary: Colors.grey,
                   ),

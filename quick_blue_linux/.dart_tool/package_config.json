@@ -15,9 +15,9 @@
     },
     {
       "name": "bluez",
-      "rootUri": "file:///home/rohit/snap/flutter/common/flutter/.pub-cache/hosted/pub.dartlang.org/bluez-0.7.7",
+      "rootUri": "file:///home/rohit/snap/flutter/common/flutter/.pub-cache/hosted/pub.dartlang.org/bluez-0.7.8",
       "packageUri": "lib/",
-      "languageVersion": "2.12"
+      "languageVersion": "2.15"
     },
     {
       "name": "boolean_selector",
@@ -134,6 +134,12 @@
       "languageVersion": "2.12"
     },
     {
+      "name": "rxdart",
+      "rootUri": "file:///home/rohit/snap/flutter/common/flutter/.pub-cache/hosted/pub.dartlang.org/rxdart-0.27.3",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
       "name": "sky_engine",
       "rootUri": "file:///home/rohit/snap/flutter/common/flutter/bin/cache/pkg/sky_engine",
       "packageUri": "lib/",
@@ -206,7 +212,7 @@
       "languageVersion": "2.12"
     }
   ],
-  "generated": "2022-03-15T07:04:44.548310Z",
+  "generated": "2022-03-18T04:27:50.423345Z",
   "generator": "pub",
   "generatorVersion": "2.16.1"
 }
