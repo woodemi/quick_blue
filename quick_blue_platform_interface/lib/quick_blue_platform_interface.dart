@@ -4,11 +4,10 @@ import 'dart:typed_data';
 
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
-import 'method_channel_quick_blue.dart';
-
 import 'models.dart';
 
 export 'models.dart';
+export 'method_channel_quick_blue.dart';
 
 typedef OnConnectionChanged = void Function(String deviceId, BlueConnectionState state);
 
@@ -21,7 +20,7 @@ abstract class QuickBluePlatform extends PlatformInterface {
 
   static final Object _token = Object();
 
-  static QuickBluePlatform _instance = MethodChannelQuickBlue();
+  static late QuickBluePlatform _instance;
 
   static QuickBluePlatform get instance => _instance;
 

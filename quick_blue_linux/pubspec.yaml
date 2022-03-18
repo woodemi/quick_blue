@@ -1,8 +1,8 @@
-name: quick_blue
-description: A cross-platform BluetoothLE plugin for Flutter.
-version: 0.3.1+2
-homepage: https://github.com/woodemi/quick_blue
-repository: https://github.com/woodemi/quick_blue/tree/master/quick_blue
+name: quick_blue_linux
+description: A new flutter plugin project.
+version: 0.0.1
+author:
+homepage:
 
 environment:
   sdk: ">=2.12.0 <3.0.0"
@@ -12,19 +12,10 @@ dependencies:
   flutter:
     sdk: flutter
   quick_blue_platform_interface: ^0.3.1+1
-  quick_blue_macos: ^0.3.1+1
-  quick_blue_windows: ^0.3.1+1
-  quick_blue_linux:
-    path: ../quick_blue_linux
-  convert: ^3.0.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-
-dependency_overrides:
-  quick_blue_platform_interface:
-    path: ../quick_blue_platform_interface
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -37,17 +28,8 @@ flutter:
   # adding or updating assets for this project.
   plugin:
     platforms:
-      android:
-        package: com.example.quick_blue
-        pluginClass: QuickBluePlugin
-      ios:
-        pluginClass: QuickBluePlugin
-      macos:
-        default_package: quick_blue_macos
-      windows:
-        default_package: quick_blue_windows
       linux:
-        default_package: quick_blue_linux
+        dartPluginClass: QuickBlueLinux
 
   # To add assets to your plugin package, add an assets section, like this:
   # assets:
