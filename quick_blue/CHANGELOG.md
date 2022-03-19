@@ -1,3 +1,7 @@
+## [0.3.1+3] - 2022.3.20
+
+- Fix missing `deviceId` in `characteristicValue` message on iOS/macOs
+
 ## [0.3.1+2] - 2022.3.10
 
 - Fix README with `readValue`
