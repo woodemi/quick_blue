@@ -18,6 +18,8 @@ class QuickBlueLinux extends QuickBluePlatform {
 
       _activeAdapter ??= _client.adapters.firstWhereOrNull((adapter) => adapter.powered);
 
+      _client.deviceAdded.listen(_onDeviceAdd);
+
       isInitialized = true;
     }
   }
@@ -31,15 +33,20 @@ class QuickBlueLinux extends QuickBluePlatform {
   }
 
   @override
-  void startScan() {
-    // TODO: implement startScan
-    throw UnimplementedError();
+  void startScan() async {
+    await _ensureInitialized();
+    print('startScan invoke success');
+
+    _activeAdapter!.startDiscovery();
+    _client.devices.forEach(_onDeviceAdd);
   }
 
   @override
-  void stopScan() {
-    // TODO: implement stopScan
-    throw UnimplementedError();
+  void stopScan() async {
+    await _ensureInitialized();
+    print('stopScan invoke success');
+
+    _activeAdapter!.stopDiscovery();
   }
 
   // FIXME Close
@@ -47,6 +54,15 @@ class QuickBlueLinux extends QuickBluePlatform {
 
   @override
   Stream get scanResultStream => _scanResultController.stream;
+
+  void _onDeviceAdd(BlueZDevice device) {
+    _scanResultController.add({
+      'deviceId': device.address,
+      'name': device.alias,
+      'manufacturerData': device.manufacturerDataHead,
+      'rssi': device.rssi,
+    });
+  }
 
   @override
   void connect(String deviceId) {
@@ -88,5 +104,15 @@ class QuickBlueLinux extends QuickBluePlatform {
   Future<int> requestMtu(String deviceId, int expectedMtu) {
     // TODO: implement requestMtu
     throw UnimplementedError();
+  }
+}
+
+extension BlueZDeviceExtension on BlueZDevice {
+  Uint8List get manufacturerDataHead {
+    if (manufacturerData.isEmpty) return Uint8List(0);
+
+    final sorted = manufacturerData.entries.toList()
+      ..sort((a, b) => a.key.id - b.key.id);
+    return Uint8List.fromList(sorted.first.value);
   }
 }
