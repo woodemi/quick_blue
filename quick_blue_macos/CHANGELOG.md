@@ -1,3 +1,7 @@
+## [0.3.1+2] - 2022.3.20
+
+- Fix missing `deviceId` in `characteristicValue` message
+
 ## [0.3.1+1] - 2022.3.10
 
 - Fix version typo
