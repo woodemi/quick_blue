@@ -1,12 +1,33 @@
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:quick_blue_platform_interface/quick_blue_platform_interface.dart';
+import 'package:bluez/bluez.dart';
+import 'package:collection/collection.dart';
 
 class QuickBlueLinux extends QuickBluePlatform {
+  bool isInitialized = false;
+
+  final BlueZClient _client = BlueZClient();
+
+  BlueZAdapter? _activeAdapter;
+
+  Future<void> _ensureInitialized() async {
+    if (!isInitialized) {
+      await _client.connect();
+
+      _activeAdapter ??= _client.adapters.firstWhereOrNull((adapter) => adapter.powered);
+
+      isInitialized = true;
+    }
+  }
+
   @override
-  Future<bool> isBluetoothAvailable() {
-    // TODO: implement isBluetoothAvailable
-    throw UnimplementedError();
+  Future<bool> isBluetoothAvailable() async {
+    await _ensureInitialized();
+    print('isBluetoothAvailable invoke success');
+
+    return _activeAdapter != null;
   }
 
   @override
@@ -21,9 +42,11 @@ class QuickBlueLinux extends QuickBluePlatform {
     throw UnimplementedError();
   }
 
+  // FIXME Close
+  final StreamController<dynamic> _scanResultController = StreamController.broadcast();
+
   @override
-  // TODO: implement scanResultStream
-  Stream get scanResultStream => throw UnimplementedError();
+  Stream get scanResultStream => _scanResultController.stream;
 
   @override
   void connect(String deviceId) {
