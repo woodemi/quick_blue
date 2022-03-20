@@ -146,6 +146,7 @@ class QuickBlueWindowsPlugin : public flutter::Plugin, public flutter::StreamHan
   BluetoothLEAdvertisementWatcher bluetoothLEWatcher{ nullptr };
   winrt::event_token bluetoothLEWatcherReceivedToken;
   void BluetoothLEWatcher_Received(BluetoothLEAdvertisementWatcher sender, BluetoothLEAdvertisementReceivedEventArgs args);
+  winrt::fire_and_forget SendScanResultAsync(BluetoothLEAdvertisementReceivedEventArgs args);
 
   std::map<uint64_t, std::unique_ptr<BluetoothDeviceAgent>> connectedDevices{};
 
@@ -325,13 +326,19 @@ std::vector<uint8_t> parseManufacturerData(BluetoothLEAdvertisement advertisemen
 void QuickBlueWindowsPlugin::BluetoothLEWatcher_Received(
     BluetoothLEAdvertisementWatcher sender,
     BluetoothLEAdvertisementReceivedEventArgs args) {
-  OutputDebugString((L"Received " + winrt::to_hstring(args.BluetoothAddress()) + L"\n").c_str());
-  auto manufacturer_data = parseManufacturerData(args.Advertisement());
+  SendScanResultAsync(args);
+}
+
+winrt::fire_and_forget QuickBlueWindowsPlugin::SendScanResultAsync(BluetoothLEAdvertisementReceivedEventArgs args) {
+  auto device = co_await BluetoothLEDevice::FromBluetoothAddressAsync(args.BluetoothAddress());
+  auto name = device ? device.Name() : args.Advertisement().LocalName();
+  OutputDebugString((L"Received BluetoothAddress:" + winrt::to_hstring(args.BluetoothAddress())
+    + L", Name:" + name + L", LocalName:" + args.Advertisement().LocalName() + L"\n").c_str());
   if (scan_result_sink_) {
     scan_result_sink_->Success(EncodableMap{
-      {"name", winrt::to_string(args.Advertisement().LocalName())},
+      {"name", winrt::to_string(name)},
       {"deviceId", std::to_string(args.BluetoothAddress())},
-      {"manufacturerData", manufacturer_data},
+      {"manufacturerData", parseManufacturerData(args.Advertisement())},
       {"rssi", args.RawSignalStrengthInDBm()},
     });
   }
