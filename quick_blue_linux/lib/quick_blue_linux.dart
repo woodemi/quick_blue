@@ -1,101 +1,81 @@
-// ignore_for_file: unused_field
-
 import 'dart:typed_data';
 import 'package:quick_blue_platform_interface/quick_blue_platform_interface.dart';
 import 'dart:async';
 import 'package:bluez/bluez.dart';
+import 'package:collection/collection.dart';
 
 class QuickBlueLinux extends QuickBluePlatform {
-  ///`Bluez Client`
   BlueZClient _client = BlueZClient();
-
-  ///`Streams`
-  StreamSubscription<BlueZDevice>? _deviceAddedSubscription;
-  StreamSubscription<BlueZDevice>? _deviceRemovedSubscription;
+  BlueZAdapter? adapter;
   final _scanController = StreamController.broadcast();
-  final _charValueUpdateController = StreamController.broadcast();
-
-  ///`Initialise Bluez`
+  List<DeviceStreamModel> conectedDeviceStreamList = [];
   bool isInitialised = false;
-  initBluez() async {
+
+  _ensureInitialized() async {
     if (!isInitialised) {
       await _client.connect();
-      print('Quick_Ble_Linux_Initialised');
-
-      _deviceAddedSubscription = _client.deviceAdded.listen(_deviceAdded);
-      _deviceRemovedSubscription = _client.deviceRemoved.listen(_deviceRemoved);
-
-      _scanController.onListen = () {
-        _client.devices.forEach(_sendDeviceState);
-      };
-
-      _charValueUpdateController.onListen = () {};
-      _charValueUpdateController.onCancel = () {};
-
+      _client.deviceAdded.listen((device) {
+        device.manufacturerData;
+        _scanController.add({
+          'deviceId': device.address,
+          'name': device.alias,
+          'manufacturerData': _getManufatureData(device.manufacturerData),
+          'rssi': device.rssi,
+        });
+      });
+      _client.deviceRemoved.listen(_checkDeviceConnectionState);
       isInitialised = true;
     }
+    if (adapter == null)
+      adapter = _client.adapters.firstWhereOrNull((element) => element.powered);
   }
 
   @override
   Future<bool> isBluetoothAvailable() async {
-    await initBluez();
-    if (_client.adapters.isEmpty) {
-      return false;
-    }
-
-    for (final adapter in _client.adapters) {
-      if (adapter.powered) {
-        return true;
-      }
-    }
-
-    return false;
+    await _ensureInitialized();
+    return adapter != null;
   }
 
   @override
   Stream get scanResultStream => _scanController.stream;
 
   @override
-  void startScan({List<Object> optionalServices = const []}) async {
-    await initBluez();
+  void startScan() async {
+    await _ensureInitialized();
     print('Started Scanning');
-    for (final adapter in _client.adapters) {
-      try {
-        adapter.startDiscovery();
-      } catch (e) {
-        print('Start Scan Error : $e');
-      }
-    }
+    adapter?.startDiscovery();
+    _client.devices.forEach((device) {
+      _scanController.add({
+        'deviceId': device.address,
+        'name': device.alias,
+        'manufacturerData': _getManufatureData(device.manufacturerData),
+        'rssi': device.rssi,
+      });
+    });
   }
 
   @override
   void stopScan() async {
-    await initBluez();
+    await _ensureInitialized();
     print('Stopped Scanning');
-    for (final adapter in _client.adapters) {
-      try {
-        adapter.stopDiscovery();
-      } catch (e) {
-        print('Start Scan Error : $e');
-      }
-    }
+    adapter?.stopDiscovery();
   }
 
   @override
   void connect(String deviceId) async {
-    await initBluez();
+    await _ensureInitialized();
     print('Try Connecting');
     final device = _getDeviceWithId(deviceId);
     if (device == null) {
       throw 'No such device $deviceId';
-    } else {
-      await device.connect();
     }
+    await device.connect();
+    _managePropertyStream(device);
   }
 
   @override
   void disconnect(String deviceId) async {
-    await initBluez();
+    await _ensureInitialized();
     final device = _getDeviceWithId(deviceId);
     if (device == null) {
       throw Exception('No such device $deviceId');
@@ -110,20 +90,14 @@ class QuickBlueLinux extends QuickBluePlatform {
     if (device == null) {
       throw Exception('No such device $deviceId');
     }
-
-    OnServiceDiscovered(deviceId, device.gattServices);
+    device.gattServices.forEach((s) {
+      onServiceDiscovered?.call(deviceId, s.uuid.toString());
+    });
   }
 
   @override
-  Future<int> requestMtu(String deviceId, int expectedMtu) async {
-    BlueZDevice? device = _getDeviceWithId(deviceId);
-    if (device == null) {
-      throw Exception('No such device $deviceId');
-    }
-
-    ///Not implemented yet
-    return expectedMtu;
-  }
+  Future<int> requestMtu(String deviceId, int expectedMtu) =>
+      throw UnimplementedError();
 
   @override
   Future<void> writeValue(
@@ -132,167 +106,97 @@ class QuickBlueLinux extends QuickBluePlatform {
       String characteristic,
       Uint8List value,
       BleOutputProperty bleOutputProperty) async {
-    BlueZGattCharacteristic? c =
+    BlueZGattCharacteristic c =
         _getCharacteristic(deviceId, service, characteristic);
-
-    if (c == null) {
-      throw Exception('No such characteristic');
-    }
-
     await c.writeValue(value);
   }
 
   @override
   Future<void> readValue(
       String deviceId, String service, String characteristic) async {
-    BlueZGattCharacteristic? c =
+    BlueZGattCharacteristic c =
         _getCharacteristic(deviceId, service, characteristic);
-
-    if (c == null) {
-      throw 'No such characteristic';
-    } else {
-      c.readValue().then((value) {
-        Uint8List data = Uint8List.fromList(value);
-        OnCharactersticValue(deviceId, characteristic, data);
-      }).catchError((Object error) {
-        throw error.toString();
-      });
-    }
+    final value = await c.readValue();
+    onValueChanged?.call(deviceId, characteristic, Uint8List.fromList(value));
   }
-
-  ///`Work In Progress`
 
   @override
   Future<void> setNotifiable(String deviceId, String service,
-      String characteristic, BleInputProperty bleInputProperty) async {
-    BlueZGattCharacteristic? c =
-        _getCharacteristic(deviceId, service, characteristic);
-    if (c == null) {
-      throw 'No such characteristic';
-    } else {
-      if (bleInputProperty.value == 'notification') {
-        ///Subscribe to the characteristic
-        ///TODO: Add Stream Here ,checkout charactersticStream Method
-        var event = await c.readValue();
-        Uint8List data = Uint8List.fromList(event);
-        OnCharactersticValue(deviceId, characteristic, data);
-      } else if (bleInputProperty.value == 'disabled') {
-        ///UnSubscribe to the characteristic
-
-      }
-    }
-  }
+          String characteristic, BleInputProperty bleInputProperty) async =>
+      throw UnimplementedError();
 
   ///`Helper Methods`
 
-  charactersticStream(BlueZGattCharacteristic c, {int autoStop = 5}) {
-    // return RepeatStream((int repeatCount) => Stream.value(c.value), autoStop)
-    //     .distinctUnique()
-    //     .doOnListen(() => c.startNotify())
-    //     .doOnDone(() => c.stopNotify());
-    //return Stream.periodic(Duration(seconds: 1));
-  }
+  BlueZDevice? _getDeviceWithId(String id) =>
+      _client.devices.firstWhereOrNull((e) => e.address == id);
 
-  BlueZDevice? _getDeviceWithId(String id) {
-    for (final device in _client.devices) {
-      if (device.address == id) {
-        return device;
+  _managePropertyStream(BlueZDevice device) {
+    ///We Might Improve Logic , open for Suggestions
+    ///When we Connect to a Device , Store Its Value to list
+    ///because a connected Device update its status (To auto Update Disconnection Handle) in a stream
+    ///of `device.propertiesChanged ` , so to get rid of running multiple Streams
+    ///we can try out something like this
+    ///
+    DeviceStreamModel? streamModel = conectedDeviceStreamList
+        .firstWhereOrNull((element) => element.deviceId == device.address);
+    if (streamModel != null) {
+      streamModel.devicePropertyStream.cancel();
+      conectedDeviceStreamList.remove(streamModel);
+    }
+
+    late StreamSubscription deviceProperties;
+
+    ///this propertiseChanged gives us a list of Strings
+    ///like this [ServicesResolved] , [ServicesResolved,Connected] , [Connected]
+    ///if this list contains connected , means this device is disconnected , so we can
+    ///close its stream
+    deviceProperties = device.propertiesChanged.listen((event) {
+      _checkDeviceConnectionState(device);
+      if (event.contains('Connected')) {
+        deviceProperties.cancel();
       }
-    }
-    return null;
+    });
+
+    ///Scaving this model to a list to cancel streamSubscription when this method will be called again
+    conectedDeviceStreamList
+        .add(DeviceStreamModel(device.address, deviceProperties));
   }
 
-  Future<void> onConnectionChange(
-      String deviceId, BlueConnectionState connectionState) async {
-    onConnectionChanged?.call(deviceId, connectionState);
-  }
-
-  Future<void> OnServiceDiscovered(
-      String deviceId, List<BlueZGattService> services) async {
-    for (var s in services) {
-      onServiceDiscovered?.call(deviceId, s.uuid.toString());
-    }
-  }
-
-  Future<void> OnCharactersticValue(
-      String deviceId, String characteristicId, Uint8List value) async {
-    onValueChanged?.call(deviceId, characteristicId, value);
-  }
-
-  BlueZGattCharacteristic? _getCharacteristic(
-      String deviceId, String serviceID, String charID) {
-    final device = _getDeviceWithId(deviceId);
-    if (device == null) {
-      return null;
-    }
-
+  BlueZGattCharacteristic _getCharacteristic(
+      String deviceId, String serviceID, String characteristicId) {
+    BlueZDevice? device = _getDeviceWithId(deviceId);
+    if (device == null) throw 'No device Found with Id : $deviceId';
     for (final service in device.gattServices) {
       if (service.uuid.toString() == serviceID) {
         for (final c in service.characteristics) {
-          if (c.uuid.toString() == charID) {
+          if (c.uuid.toString() == characteristicId) {
             return c;
           }
         }
       }
     }
-
-    return null;
+    throw Exception('No such characteristic : $characteristicId');
   }
 
-  void _deviceAdded(BlueZDevice device) {
-    device.propertiesChanged
-        .listen((properties) => _deviceChanged(device, properties));
-    _deviceChanged(device, []);
-  }
+  void _checkDeviceConnectionState(
+          BlueZDevice device) =>
+      onConnectionChanged?.call(
+          device.address,
+          device.connected
+              ? BlueConnectionState.connected
+              : BlueConnectionState.disconnected);
 
-  void _deviceChanged(BlueZDevice device, List<String> properties) {
-    _checkDeviceConnectionState(device);
-    _sendDeviceState(device);
-  }
-
-  void _sendDeviceState(BlueZDevice device) {
-    BlueScanResultParse result = BlueScanResultParse(
-      deviceId: device.address,
-      name: device.alias,
-      manufacturerData: Uint8List(0),
-      rssi: device.rssi,
-    );
-    _scanController.add(result.toMap());
-  }
-
-  void _deviceRemoved(BlueZDevice device) {}
-
-  void _checkDeviceConnectionState(BlueZDevice device) {
-    BlueConnectionState connectionState = device.connected
-        ? BlueConnectionState.connected
-        : BlueConnectionState.disconnected;
-    onConnectionChange(device.address, connectionState);
+  Uint8List _getManufatureData(
+      Map<BlueZManufacturerId, List<int>> manufacturerData) {
+    if (manufacturerData.isEmpty) return Uint8List(0);
+    final sorted = manufacturerData.entries.toList()
+      ..sort((a, b) => a.key.id - b.key.id);
+    return Uint8List.fromList(sorted.first.value);
   }
 }
 
-///`Scan Model`
-class BlueScanResultParse {
-  String name;
+class DeviceStreamModel {
   String deviceId;
-  Uint8List manufacturerData;
-  int rssi;
-
-  BlueScanResultParse(
-      {required this.name,
-      required this.deviceId,
-      required this.manufacturerData,
-      required this.rssi});
-
-  BlueScanResultParse.fromMap(map)
-      : name = map['name'],
-        deviceId = map['deviceId'],
-        manufacturerData = map['manufacturerData'],
-        rssi = map['rssi'];
-
-  Map toMap() => {
-        'name': name,
-        'deviceId': deviceId,
-        'manufacturerData': manufacturerData,
-        'rssi': rssi,
-      };
+  StreamSubscription devicePropertyStream;
+  DeviceStreamModel(this.deviceId, this.devicePropertyStream);
 }
