@@ -1,6 +1,6 @@
 name: quick_blue_linux
 description: Linux implementation of the quick_blue plugin.
-version: 0.1.0
+version: 0.1.1
 homepage: https://github.com/woodemi/quick_blue
 repository: https://github.com/woodemi/quick_blue/tree/master/quick_blue_linux
 
@@ -11,9 +11,10 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  quick_blue_platform_interface: ^0.3.1+1
-  bluez: 0.7.5
+  quick_blue_platform_interface: ^0.3.2
+  bluez: ^0.7.9
   collection: ^1.15.0
+  logging: ^1.0.2
 
 dev_dependencies:
   flutter_test:
