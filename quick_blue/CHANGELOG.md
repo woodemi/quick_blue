@@ -1,3 +1,7 @@
+## [0.4.0] - 2022.3.21
+
+- Add limited Linux support via quick_blue_linux
+
 ## [0.3.1+3] - 2022.3.20
 
 - Fix missing `deviceId` in `characteristicValue` message on iOS/macOs
