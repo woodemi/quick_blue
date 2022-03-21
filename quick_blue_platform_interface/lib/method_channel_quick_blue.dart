@@ -16,6 +16,7 @@ class MethodChannelQuickBlue extends QuickBluePlatform {
   }
 
   QuickLogger? _logger;
+
   @override
   void setLogger(QuickLogger logger) {
     _logger = logger;

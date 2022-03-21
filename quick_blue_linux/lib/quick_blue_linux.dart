@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:bluez/bluez.dart';
 import 'package:collection/collection.dart';
+import 'package:logging/logging.dart';
 import 'package:quick_blue_platform_interface/quick_blue_platform_interface.dart';
 
 class QuickBlueLinux extends QuickBluePlatform {
@@ -24,13 +25,21 @@ class QuickBlueLinux extends QuickBluePlatform {
     }
   }
 
+  QuickLogger? _logger;
+
   @override
-  void setLogger(QuickLogger logger) {}
+  void setLogger(QuickLogger logger) {
+    _logger = logger;
+  }
+
+  void _log(String message, {Level logLevel = Level.INFO}) {
+    _logger?.log(logLevel, message);
+  }
 
   @override
   Future<bool> isBluetoothAvailable() async {
     await _ensureInitialized();
-    print('isBluetoothAvailable invoke success');
+    _log('isBluetoothAvailable invoke success');
 
     return _activeAdapter != null;
   }
@@ -38,7 +47,7 @@ class QuickBlueLinux extends QuickBluePlatform {
   @override
   void startScan() async {
     await _ensureInitialized();
-    print('startScan invoke success');
+    _log('startScan invoke success');
 
     _activeAdapter!.startDiscovery();
     _client.devices.forEach(_onDeviceAdd);
@@ -47,7 +56,7 @@ class QuickBlueLinux extends QuickBluePlatform {
   @override
   void stopScan() async {
     await _ensureInitialized();
-    print('stopScan invoke success');
+    _log('stopScan invoke success');
 
     _activeAdapter!.stopDiscovery();
   }
