@@ -71,7 +71,7 @@ class QuickBlueLinux extends QuickBluePlatform {
     _scanResultController.add({
       'deviceId': device.address,
       'name': device.alias,
-      'manufacturerData': device.manufacturerDataHead,
+      'manufacturerDataHead': device.manufacturerDataHead,
       'rssi': device.rssi,
     });
   }
