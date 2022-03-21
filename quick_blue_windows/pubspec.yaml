@@ -5,8 +5,8 @@ homepage: https://github.com/woodemi/quick_blue
 repository: https://github.com/woodemi/quick_blue/tree/master/quick_blue_windows
 
 environment:
-  sdk: ">=2.12.0 <3.0.0"
-  flutter: ">=2.0.0"
+  sdk: ">=2.13.0 <3.0.0"
+  flutter: ">=2.2.0"
 
 dependencies:
   flutter:

@@ -3,14 +3,14 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:quick_blue_linux/quick_blue_linux.dart';
-import 'package:quick_blue_platform_interface/quick_blue_platform_interface.dart';
 import 'package:quick_blue_platform_interface/method_channel_quick_blue.dart';
+import 'package:quick_blue_platform_interface/quick_blue_platform_interface.dart';
 
 import 'models.dart';
 
-export 'models.dart';
-
 export 'package:quick_blue_platform_interface/models.dart';
+
+export 'models.dart';
 
 bool _manualDartRegistrationNeeded = true;
 
@@ -21,8 +21,10 @@ QuickBluePlatform get _platform {
   if (_manualDartRegistrationNeeded) {
     // Only do the initial registration if it hasn't already been overridden
     // with a non-default instance.
-    if (Platform.isAndroid || Platform.isIOS
-      || Platform.isWindows || Platform.isMacOS) {
+    if (Platform.isAndroid ||
+        Platform.isIOS ||
+        Platform.isWindows ||
+        Platform.isMacOS) {
       QuickBluePlatform.instance = MethodChannelQuickBlue();
     } else if (Platform.isLinux) {
       QuickBluePlatform.instance = QuickBlueLinux();
@@ -34,7 +36,11 @@ QuickBluePlatform get _platform {
 }
 
 class QuickBlue {
-  static Future<bool> isBluetoothAvailable() => _platform.isBluetoothAvailable();
+  static void setLogger(QuickLogger logger) =>
+      QuickBluePlatform.instance.setLogger(logger);
+
+  static Future<bool> isBluetoothAvailable() =>
+      _platform.isBluetoothAvailable();
 
   static void startScan() => _platform.startScan();
 
