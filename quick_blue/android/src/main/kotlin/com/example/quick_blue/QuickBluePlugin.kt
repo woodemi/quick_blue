@@ -170,7 +170,7 @@ class QuickBluePlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamHand
       scanResultSink?.success(mapOf<String, Any>(
               "name" to (result.device.name ?: ""),
               "deviceId" to result.device.address,
-              "manufacturerData" to (result.manufacturerData ?: byteArrayOf()),
+              "manufacturerDataHead" to (result.manufacturerDataHead ?: byteArrayOf()),
               "rssi" to result.rssi
       ))
     }
@@ -270,7 +270,7 @@ class QuickBluePlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamHand
   }
 }
 
-val ScanResult.manufacturerData: ByteArray?
+val ScanResult.manufacturerDataHead: ByteArray?
   get() {
     val sparseArray = scanRecord?.manufacturerSpecificData ?: return null
     if (sparseArray.size() == 0) return null

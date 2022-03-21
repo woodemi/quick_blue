@@ -1,3 +1,7 @@
+## [0.4.1+1] - 2022.3.22
+
+- Add `manufacturerDataHead` & Refactor `manufacturerData` in BlueScanResult
+
 ## [0.4.1] - 2022.3.21
 
 - Add `setLogger`
@@ -13,7 +17,7 @@
 
 ## [0.3.1+3] - 2022.3.20
 
-- Fix missing `deviceId` in `characteristicValue` message on iOS/macOs
+- Fix missing `deviceId` in `characteristicValue` message on iOS/macOS
 
 ## [0.3.1+2] - 2022.3.10
 
