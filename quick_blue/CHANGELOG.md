@@ -1,3 +1,7 @@
+## [0.4.1] - 2022.3.21
+
+- Add `setLogger`
+
 ## [0.4.0+1] - 2022.3.21
 
 - Add API compatibility table to README
