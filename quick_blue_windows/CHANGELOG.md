@@ -1,3 +1,7 @@
+## [0.3.2] - 2022.3.22
+
+- Refactor `manufacturerData` to `manufacturerDataHead`
+
 ## [0.3.1+1] - 2022.3.10
 
 - Fix version typo
