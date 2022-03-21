@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'dart:typed_data';
 
-import 'package:quick_blue_platform_interface/quick_blue_platform_interface.dart';
 import 'package:bluez/bluez.dart';
 import 'package:collection/collection.dart';
+import 'package:quick_blue_platform_interface/quick_blue_platform_interface.dart';
 
 class QuickBlueLinux extends QuickBluePlatform {
   bool isInitialized = false;
@@ -23,6 +23,9 @@ class QuickBlueLinux extends QuickBluePlatform {
       isInitialized = true;
     }
   }
+
+  @override
+  void setLogger(QuickLogger logger) {}
 
   @override
   Future<bool> isBluetoothAvailable() async {
