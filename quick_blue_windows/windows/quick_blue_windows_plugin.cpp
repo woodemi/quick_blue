@@ -308,7 +308,7 @@ void QuickBlueWindowsPlugin::HandleMethodCall(
   }
 }
 
-std::vector<uint8_t> parseManufacturerData(BluetoothLEAdvertisement advertisement)
+std::vector<uint8_t> parseManufacturerDataHead(BluetoothLEAdvertisement advertisement)
 {
   if (advertisement.ManufacturerData().Size() == 0)
     return std::vector<uint8_t>();
@@ -338,7 +338,7 @@ winrt::fire_and_forget QuickBlueWindowsPlugin::SendScanResultAsync(BluetoothLEAd
     scan_result_sink_->Success(EncodableMap{
       {"name", winrt::to_string(name)},
       {"deviceId", std::to_string(args.BluetoothAddress())},
-      {"manufacturerData", parseManufacturerData(args.Advertisement())},
+      {"manufacturerDataHead", parseManufacturerDataHead(args.Advertisement())},
       {"rssi", args.RawSignalStrengthInDBm()},
     });
   }
