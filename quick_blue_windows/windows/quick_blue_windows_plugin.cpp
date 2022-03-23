@@ -247,8 +247,8 @@ void QuickBlueWindowsPlugin::HandleMethodCall(
     // TODO send `disconnected` message
     result->Success(nullptr);
   } else if (method_name.compare("discoverServices") == 0) {
-    // TODO
-    result->Success(nullptr);
+    // FIXME Unnecessary for Windows: https://github.com/woodemi/quick_blue/issues/76
+    result->NotImplemented();
   } else if (method_name.compare("setNotifiable") == 0) {
     auto args = std::get<EncodableMap>(*method_call.arguments());
     auto deviceId = std::get<std::string>(args[EncodableValue("deviceId")]);
