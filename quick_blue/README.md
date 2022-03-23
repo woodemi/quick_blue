@@ -14,11 +14,13 @@ A cross-platform (Android/iOS/macOS/Windows/Linux) BluetoothLE plugin for Flutte
 | isBluetoothAvailable | ✔️ | ✔️ | ✔️ | ✔️ | ✔️ |
 | startScan/stopScan | ✔️ | ✔️ | ✔️ | ✔️ | ✔️ |
 | connect/disconnect | ✔️ | ✔️ | ✔️ | ✔️ |  |
-| discoverServices | ✔️ | ✔️ | ✔️ | ✔️ |  |
+| discoverServices | ✔️ | ✔️ | ✔️ |  |  |
 | setNotifiable | ✔️ | ✔️ | ✔️ | ✔️ |  |
 | readValue | ✔️ | ✔️ | ✔️ | ✔️ |  |
 | writeValue | ✔️ | ✔️ | ✔️ | ✔️ |  |
 | requestMtu | ✔️ | ✔️ | ✔️ | ✔️ |  |
+
+> * Windows' APIs are little different on `discoverServices`: https://github.com/woodemi/quick_blue/issues/76
 
 ## Scan BLE peripheral
 
