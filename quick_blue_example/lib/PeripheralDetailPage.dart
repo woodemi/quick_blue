@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:convert/convert.dart';
+import 'package:expandable/expandable.dart';
 import 'package:flutter/material.dart';
 import 'package:quick_blue/quick_blue.dart';
 
@@ -31,7 +32,7 @@ class PeripheralDetailPage extends StatefulWidget {
 class _PeripheralDetailPageState extends State<PeripheralDetailPage> {
   bool isConnected = false;
   bool parseValue = false;
-  var discoveredServices = [];
+  List<BlueServices> discoveredServices = [];
   var readValues = [];
 
   @override
@@ -59,11 +60,13 @@ class _PeripheralDetailPageState extends State<PeripheralDetailPage> {
     });
   }
 
-  void _handleServiceDiscovery(String deviceId, String serviceId) {
+  void _handleServiceDiscovery(
+      String deviceId, String serviceId, BlueServices blueService) {
     print('_handleServiceDiscovery $deviceId, $serviceId');
     setState(() {
-      if (!discoveredServices.contains(serviceId)) {
-        discoveredServices.add(serviceId);
+      if (!discoveredServices
+          .any((e) => e.serviceId == blueService.serviceId)) {
+        discoveredServices.add(blueService);
       }
     });
   }
@@ -102,32 +105,34 @@ class _PeripheralDetailPageState extends State<PeripheralDetailPage> {
           children: [
             Padding(
               padding: const EdgeInsets.all(8.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: <Widget>[
-                  ElevatedButton(
-                    child: Text('Connect'),
-                    onPressed: () {
-                      QuickBlue.connect(widget.deviceId);
-                    },
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(18.0),
-                    child: ElevatedButton(
-                      child: Text('Connected : $isConnected'),
-                      onPressed: () {},
-                      style: ElevatedButton.styleFrom(
-                        primary: isConnected ? Colors.green : Colors.red,
+              child: FittedBox(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: <Widget>[
+                    ElevatedButton(
+                      child: Text('Connect'),
+                      onPressed: () {
+                        QuickBlue.connect(widget.deviceId);
+                      },
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(18.0),
+                      child: ElevatedButton(
+                        child: Text('Connected : $isConnected'),
+                        onPressed: () {},
+                        style: ElevatedButton.styleFrom(
+                          primary: isConnected ? Colors.green : Colors.red,
+                        ),
                       ),
                     ),
-                  ),
-                  ElevatedButton(
-                    child: Text('Disconnect'),
-                    onPressed: () {
-                      QuickBlue.disconnect(widget.deviceId);
-                    },
-                  ),
-                ],
+                    ElevatedButton(
+                      child: Text('Disconnect'),
+                      onPressed: () {
+                        QuickBlue.disconnect(widget.deviceId);
+                      },
+                    ),
+                  ],
+                ),
               ),
             ),
             Divider(),
@@ -271,16 +276,45 @@ class _PeripheralDetailPageState extends State<PeripheralDetailPage> {
                 return Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: Card(
-                    child: ListTile(
-                      onTap: () {
-                        // onServiceTap(discoveredServices[index]);
-                        setState(() {
-                          discoveredServices.removeAt(index);
-                        });
-                      },
-                      title: Text(discoveredServices[index]),
-                      trailing: Icon(Icons.clear),
+                    child: ExpandablePanel(
+                      header: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Row(
+                          children: [
+                            Icon(Icons.arrow_forward_ios),
+                            Expanded(
+                                child:
+                                    Text(discoveredServices[index].serviceId)),
+                          ],
+                        ),
+                      ),
+                      collapsed: SizedBox(),
+                      expanded: Column(
+                        children: discoveredServices[index]
+                            .characteristics
+                            .map((e) => Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.arrow_right_outlined),
+                                      Expanded(child: Text(e)),
+                                    ],
+                                  ),
+                                ))
+                            .toList(),
+                      ),
                     ),
+
+                    // ListTile(
+                    //   onTap: () {
+                    //     // onServiceTap(discoveredServices[index]);
+                    //     setState(() {
+                    //       discoveredServices.removeAt(index);
+                    //     });
+                    //   },
+                    //   title: Text(discoveredServices[index]),
+                    //   trailing: Icon(Icons.clear),
+                    // ),
                   ),
                 );
               },
