@@ -2,14 +2,18 @@ library quick_blue_platform_interface;
 
 import 'dart:typed_data';
 
+import 'package:logging/logging.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
 import 'models.dart';
 
-export 'models.dart';
 export 'method_channel_quick_blue.dart';
+export 'models.dart';
 
-typedef OnConnectionChanged = void Function(String deviceId, BlueConnectionState state);
+typedef QuickLogger = Logger;
+
+typedef OnConnectionChanged = void Function(
+    String deviceId, BlueConnectionState state);
 
 typedef OnServiceDiscovered = void Function(String deviceId, String serviceId);
 
@@ -28,6 +32,8 @@ abstract class QuickBluePlatform extends PlatformInterface {
     PlatformInterface.verifyToken(instance, _token);
     _instance = instance;
   }
+
+  void setLogger(QuickLogger logger);
 
   Future<bool> isBluetoothAvailable();
 

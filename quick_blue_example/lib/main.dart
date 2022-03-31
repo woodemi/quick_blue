@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:logging/logging.dart';
 import 'package:quick_blue/quick_blue.dart';
 
 import 'PeripheralDetailPage.dart';
@@ -23,6 +24,9 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
+    if (kDebugMode) {
+      QuickBlue.setLogger(Logger('quick_blue_example'));
+    }
     _subscription = QuickBlue.scanResultStream.listen((result) {
       if (!_scanResults.any((r) => r.deviceId == result.deviceId)) {
         setState(() => _scanResults.add(result));

@@ -247,8 +247,8 @@ void QuickBlueWindowsPlugin::HandleMethodCall(
     // TODO send `disconnected` message
     result->Success(nullptr);
   } else if (method_name.compare("discoverServices") == 0) {
-    // TODO
-    result->Success(nullptr);
+    // FIXME Unnecessary for Windows: https://github.com/woodemi/quick_blue/issues/76
+    result->NotImplemented();
   } else if (method_name.compare("setNotifiable") == 0) {
     auto args = std::get<EncodableMap>(*method_call.arguments());
     auto deviceId = std::get<std::string>(args[EncodableValue("deviceId")]);
@@ -308,7 +308,7 @@ void QuickBlueWindowsPlugin::HandleMethodCall(
   }
 }
 
-std::vector<uint8_t> parseManufacturerData(BluetoothLEAdvertisement advertisement)
+std::vector<uint8_t> parseManufacturerDataHead(BluetoothLEAdvertisement advertisement)
 {
   if (advertisement.ManufacturerData().Size() == 0)
     return std::vector<uint8_t>();
@@ -338,7 +338,7 @@ winrt::fire_and_forget QuickBlueWindowsPlugin::SendScanResultAsync(BluetoothLEAd
     scan_result_sink_->Success(EncodableMap{
       {"name", winrt::to_string(name)},
       {"deviceId", std::to_string(args.BluetoothAddress())},
-      {"manufacturerData", parseManufacturerData(args.Advertisement())},
+      {"manufacturerDataHead", parseManufacturerDataHead(args.Advertisement())},
       {"rssi", args.RawSignalStrengthInDBm()},
     });
   }

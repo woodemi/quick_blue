@@ -1,17 +1,30 @@
 # quick_blue
 
-A cross-platform (Android/iOS/macOS/Windows) BluetoothLE plugin for Flutter
+A cross-platform (Android/iOS/macOS/Windows/Linux) BluetoothLE plugin for Flutter
 
 # Usage
 
-- Scan BLE peripheral
-- Connect BLE peripheral
-- Discover services of BLE peripheral
-- Transfer data between BLE central & peripheral
+- [Scan BLE peripheral](#scan-ble-peripheral)
+- [Connect BLE peripheral](#connect-ble-peripheral)
+- [Discover services of BLE peripheral](#discover-services-of-ble-peripheral)
+- [Transfer data between BLE central & peripheral](#transfer-data-between-ble-central--peripheral)
+
+| API | Android | iOS | macOS | Windows | Linux |
+| :--- | :---: | :---: | :---: | :---: | :---: |
+| isBluetoothAvailable | ✔️ | ✔️ | ✔️ | ✔️ | ✔️ |
+| startScan/stopScan | ✔️ | ✔️ | ✔️ | ✔️ | ✔️ |
+| connect/disconnect | ✔️ | ✔️ | ✔️ | ✔️ |  |
+| discoverServices | ✔️ | ✔️ | ✔️ |  |  |
+| setNotifiable | ✔️ | ✔️ | ✔️ | ✔️ |  |
+| readValue | ✔️ | ✔️ | ✔️ | ✔️ |  |
+| writeValue | ✔️ | ✔️ | ✔️ | ✔️ |  |
+| requestMtu | ✔️ | ✔️ | ✔️ | ✔️ |  |
+
+> * Windows' APIs are little different on `discoverServices`: https://github.com/woodemi/quick_blue/issues/76
 
 ## Scan BLE peripheral
 
-Android/iOS/macOS/Windows
+Android/iOS/macOS/Windows/Linux
 
 ```dart
 QuickBlue.scanResultStream.listen((result) {

@@ -2,7 +2,9 @@ import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:flutter/services.dart';
-import 'package:quick_blue_platform_interface/quick_blue_platform_interface.dart';
+import 'package:logging/logging.dart';
+
+import 'quick_blue_platform_interface.dart';
 
 class MethodChannelQuickBlue extends QuickBluePlatform {
   static const MethodChannel _method = const MethodChannel('quick_blue/method');
@@ -11,6 +13,17 @@ class MethodChannelQuickBlue extends QuickBluePlatform {
 
   MethodChannelQuickBlue() {
     _message_connector.setMessageHandler(_handleConnectorMessage);
+  }
+
+  QuickLogger? _logger;
+
+  @override
+  void setLogger(QuickLogger logger) {
+    _logger = logger;
+  }
+
+  void _log(String message, {Level logLevel = Level.INFO}) {
+    _logger?.log(logLevel, message);
   }
 
   @override
@@ -40,25 +53,25 @@ class MethodChannelQuickBlue extends QuickBluePlatform {
   void connect(String deviceId) {
     _method.invokeMethod('connect', {
       'deviceId': deviceId,
-    }).then((_) => print('connect invokeMethod success'));
+    }).then((_) => _log('connect invokeMethod success'));
   }
 
   @override
   void disconnect(String deviceId) {
     _method.invokeMethod('disconnect', {
       'deviceId': deviceId,
-    }).then((_) => print('disconnect invokeMethod success'));
+    }).then((_) => _log('disconnect invokeMethod success'));
   }
 
   @override
   void discoverServices(String deviceId) {
     _method.invokeMethod('discoverServices', {
       'deviceId': deviceId,
-    }).then((_) => print('discoverServices invokeMethod success'));
+    }).then((_) => _log('discoverServices invokeMethod success'));
   }
 
   Future<void> _handleConnectorMessage(dynamic message) async {
-    print('_handleConnectorMessage $message');
+    _log('_handleConnectorMessage $message', logLevel: Level.ALL);
     if (message['ConnectionState'] != null) {
       String deviceId = message['deviceId'];
       BlueConnectionState connectionState = BlueConnectionState.parse(message['ConnectionState']);
@@ -89,7 +102,7 @@ class MethodChannelQuickBlue extends QuickBluePlatform {
       'service': service,
       'characteristic': characteristic,
       'bleInputProperty': bleInputProperty.value,
-    }).then((_) => print('setNotifiable invokeMethod success'));
+    }).then((_) => _log('setNotifiable invokeMethod success'));
   }
 
   @override
@@ -98,7 +111,7 @@ class MethodChannelQuickBlue extends QuickBluePlatform {
       'deviceId': deviceId,
       'service': service,
       'characteristic': characteristic,
-    }).then((_) => print('readValue invokeMethod success'));
+    }).then((_) => _log('readValue invokeMethod success'));
   }
 
   @override
@@ -110,7 +123,7 @@ class MethodChannelQuickBlue extends QuickBluePlatform {
       'value': value,
       'bleOutputProperty': bleOutputProperty.value,
     }).then((_) {
-      print('writeValue invokeMethod success');
+      _log('writeValue invokeMethod success', logLevel: Level.ALL);
     }).catchError((onError) {
       // Characteristic sometimes unavailable on Android
       throw onError;
@@ -125,7 +138,7 @@ class MethodChannelQuickBlue extends QuickBluePlatform {
     _method.invokeMethod('requestMtu', {
       'deviceId': deviceId,
       'expectedMtu': expectedMtu,
-    }).then((_) => print('requestMtu invokeMethod success'));
+    }).then((_) => _log('requestMtu invokeMethod success'));
     return await _mtuConfigController.stream.first;
   }
 }
