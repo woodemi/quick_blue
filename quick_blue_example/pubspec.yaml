@@ -25,6 +25,7 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.0
   convert: ^3.0.0
+  expandable: ^5.0.1
   logging: ^1.0.2
 
 dev_dependencies:
@@ -46,7 +47,6 @@ dependency_overrides:
 
 # The following section is specific to Flutter.
 flutter:
-
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.

@@ -16,6 +16,7 @@ import io.flutter.plugin.common.MethodChannel.Result
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.util.*
+import kotlin.collections.HashMap
 
 private const val TAG = "QuickBluePlugin"
 
@@ -216,9 +217,14 @@ class QuickBluePlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamHand
     override fun onServicesDiscovered(gatt: BluetoothGatt, status: Int) {
       Log.v(TAG, "onServicesDiscovered ${gatt.device.address} $status")
       if (status != BluetoothGatt.GATT_SUCCESS) return
-
+      var blueServices= mutableListOf<Map<String,Any>>()
       gatt.services?.forEach { service ->
         Log.v(TAG, "Service " + service.uuid)
+        blueServices.add(mapOf<String,Any>(
+                "service" to service.uuid.toString(),
+                "characteristics" to service.characteristics.map { it.uuid.toString() }
+            )
+        )
         service.characteristics.forEach { characteristic ->
           Log.v(TAG, "    Characteristic ${characteristic.uuid}")
           characteristic.descriptors.forEach {
@@ -230,7 +236,8 @@ class QuickBluePlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamHand
       sendMessage(messageConnector, mapOf(
         "deviceId" to gatt.device.address,
         "ServiceState" to "discovered",
-        "services" to gatt.services.map { it.uuid.toString() }
+        "services" to gatt.services.map { it.uuid.toString() },
+        "blueService" to blueServices,
       ))
     }
 

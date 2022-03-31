@@ -226,10 +226,17 @@ extension QuickBlueMacosPlugin: CBPeripheralDelegate {
     for characteristic in service.characteristics! {
       print("peripheral:didDiscoverCharacteristicsForService (\(service.uuid.uuidStr), \(characteristic.uuid.uuidStr)")
     }
+    
+    let data : [String: Any]  = [
+      "service": service.uuid.uuidStr,
+      "characteristics":service.characteristics?.map { $0.uuid.uuidStr } ?? [],
+    ]
+    
     self.messageConnector.sendMessage([
       "deviceId": peripheral.uuid.uuidString,
       "ServiceState": "discovered",
       "services": [service.uuid.uuidStr],
+      "blueService": [data],
     ])
   }
 
