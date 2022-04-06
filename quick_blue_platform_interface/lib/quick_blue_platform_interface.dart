@@ -15,7 +15,7 @@ typedef QuickLogger = Logger;
 typedef OnConnectionChanged = void Function(
     String deviceId, BlueConnectionState state);
 
-typedef OnServiceDiscovered = void Function(String deviceId, String serviceId);
+typedef OnServiceDiscovered = void Function(String deviceId, String serviceId,BlueServices service);
 
 typedef OnValueChanged = void Function(String deviceId, String characteristicId, Uint8List value);
 

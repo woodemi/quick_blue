@@ -34,3 +34,38 @@ class BleOutputProperty {
 
   const BleOutputProperty._(this.value);
 }
+
+class BlueServices {
+  String serviceId;
+  List<BlueCharacteristic> characteristics;
+  BlueServices({required this.serviceId, this.characteristics = const []});
+
+  BlueServices.fromMap(map)
+      : serviceId = map['serviceId'],
+        characteristics = map['characteristics'];
+
+  Map toMap() => {
+        'serviceId': serviceId,
+        'characteristics': characteristics,
+      };
+}
+
+class BlueCharacteristic {
+  final String characteristicId;
+  final String serviceId;
+  final bool isReadable;
+  final bool isWritableWithResponse;
+  final bool isWritableWithoutResponse;
+  final bool isNotifiable;
+  final bool isIndicatable;
+
+  const BlueCharacteristic({
+    required this.characteristicId,
+    required this.serviceId,
+    required this.isReadable,
+    required this.isWritableWithResponse,
+    required this.isWritableWithoutResponse,
+    required this.isNotifiable,
+    required this.isIndicatable,
+  });
+}

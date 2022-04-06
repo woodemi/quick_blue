@@ -49,7 +49,7 @@ class _PeripheralDetailPageState extends State<PeripheralDetailPage> {
     print('_handleConnectionChange $deviceId, $state');
   }
 
-  void _handleServiceDiscovery(String deviceId, String serviceId) {
+  void _handleServiceDiscovery(String deviceId, String serviceId,BlueServices service) {
     print('_handleServiceDiscovery $deviceId, $serviceId');
   }
 

@@ -80,10 +80,35 @@ class MethodChannelQuickBlue extends QuickBluePlatform {
       if (message['ServiceState'] == 'discovered') {
         String deviceId = message['deviceId'];
         List<dynamic> services = message['services'];
-        for (var s in services) {
-          onServiceDiscovered?.call(deviceId, s);
+
+        var blueServicesMap = message['blueService'];
+        if (blueServicesMap == null) return;
+        
+        for (var element in blueServicesMap) {
+          String service = element['service'] ?? "";
+          var characteristics = element['characteristics'];
+          List<BlueCharacteristic> chars = [];
+          characteristics.forEach((e) {
+            BlueCharacteristic blueCharacteristic = BlueCharacteristic(
+              characteristicId: e["uuid"] ?? "",
+              serviceId: e["serviceId"] ?? "",
+              isReadable: e["isReadable"] ?? false,
+              isWritableWithResponse: e["isWritableWithResponse"] ?? false,
+              isWritableWithoutResponse:
+                  e["isWritableWithoutResponse"] ?? false,
+              isNotifiable: e["isNotifiable"] ?? false,
+              isIndicatable: e["isIndicatable"] ?? false,
+            );
+            chars.add(blueCharacteristic);
+          });
+
+          BlueServices blueservices =
+              BlueServices(serviceId: service, characteristics: chars);
+
+          onServiceDiscovered?.call(deviceId, service, blueservices);
         }
       }
+
     } else if (message['characteristicValue'] != null) {
       String deviceId = message['deviceId'];
       var characteristicValue = message['characteristicValue'];
