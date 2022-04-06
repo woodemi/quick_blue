@@ -217,8 +217,32 @@ class QuickBluePlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamHand
       Log.v(TAG, "onServicesDiscovered ${gatt.device.address} $status")
       if (status != BluetoothGatt.GATT_SUCCESS) return
 
+      var blueServices= mutableListOf<Map<String,Any>>()
+
       gatt.services?.forEach { service ->
         Log.v(TAG, "Service " + service.uuid)
+
+        var blueCharArray = mutableListOf<Map<String, Any>>()
+
+        service.characteristics.forEach{ characteristic ->
+          Log.v(TAG,characteristic.properties.toString())
+          val characteristicProperties = characteristic.properties
+
+          blueCharArray.add(mapOf(
+            "uuid" to characteristic.uuid.toString(),
+            "serviceId" to service.uuid.toString(),
+            "isReadable" to (characteristicProperties and BluetoothGattCharacteristic.PROPERTY_READ > 0),
+            "isWritableWithResponse" to (characteristicProperties and BluetoothGattCharacteristic.PROPERTY_WRITE > 0),
+            "isWritableWithoutResponse" to (characteristicProperties and BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE > 0),
+            "isNotifiable" to (characteristicProperties and BluetoothGattCharacteristic.PROPERTY_NOTIFY > 0),
+            "isIndicatable" to (characteristicProperties and BluetoothGattCharacteristic.PROPERTY_INDICATE > 0),
+          ))
+        }
+        blueServices.add(mapOf<String,Any>(
+                "service" to service.uuid.toString(),
+                "characteristics" to blueCharArray
+            )
+        )
         service.characteristics.forEach { characteristic ->
           Log.v(TAG, "    Characteristic ${characteristic.uuid}")
           characteristic.descriptors.forEach {
@@ -230,7 +254,8 @@ class QuickBluePlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamHand
       sendMessage(messageConnector, mapOf(
         "deviceId" to gatt.device.address,
         "ServiceState" to "discovered",
-        "services" to gatt.services.map { it.uuid.toString() }
+        "services" to gatt.services.map { it.uuid.toString() },
+        "blueService" to blueServices,
       ))
     }
 
