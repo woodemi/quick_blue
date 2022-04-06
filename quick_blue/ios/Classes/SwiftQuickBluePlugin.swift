@@ -223,13 +223,33 @@ extension SwiftQuickBluePlugin: CBPeripheralDelegate {
   }
     
   public func peripheral(_ peripheral: CBPeripheral, didDiscoverCharacteristicsFor service: CBService, error: Error?) {
+    var blueCharArray : Array<[String: Any]> = Array()
+   
     for characteristic in service.characteristics! {
+      blueCharArray.append(
+            [
+              "uuid": characteristic.uuid.uuidString,
+              "serviceId": service.uuid.uuidString,
+              "isReadable" : characteristic.properties.contains(.read),
+              "isWritableWithResponse" : characteristic.properties.contains(.write),
+              "isWritableWithoutResponse" : characteristic.properties.contains(.writeWithoutResponse),
+              "isNotifiable" : characteristic.properties.contains(.notify),
+              "isIndicatable" : characteristic.properties.contains(.indicate),
+            ]
+        )
       print("peripheral:didDiscoverCharacteristicsForService (\(service.uuid.uuidStr), \(characteristic.uuid.uuidStr)")
     }
+
+    let data : [String: Any]  = [
+      "service": service.uuid.uuidStr,
+      "characteristics": blueCharArray ?? [],
+    ]
+    
     self.messageConnector.sendMessage([
       "deviceId": peripheral.uuid.uuidString,
       "ServiceState": "discovered",
       "services": [service.uuid.uuidStr],
+       "blueService": [data],
     ])
   }
     
