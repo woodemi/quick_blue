@@ -8,7 +8,7 @@ on:
       - '!master'
       - '!develop'
   pull_request:
-    types: [opened, reopened]
+    types: [opened, reopened, synchronize]
 
 jobs:
   build-android:
