@@ -229,13 +229,14 @@ class QuickBluePlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamHand
             Log.v(TAG, "        Descriptor ${it.uuid}")
           }
         }
-      }
 
-      sendMessage(messageConnector, mapOf(
-        "deviceId" to gatt.device.address,
-        "ServiceState" to "discovered",
-        "services" to gatt.services.map { it.uuid.toString() }
-      ))
+        sendMessage(messageConnector, mapOf(
+          "deviceId" to gatt.device.address,
+          "ServiceState" to "discovered",
+          "service" to service.uuid.toString(),
+          "characteristics" to service.characteristics.map { it.uuid.toString() }
+        ))
+      }
     }
 
     override fun onMtuChanged(gatt: BluetoothGatt?, mtu: Int, status: Int) {
