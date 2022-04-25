@@ -5,6 +5,7 @@ import android.bluetooth.*
 import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanResult
 import android.content.Context
+import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
@@ -78,9 +79,12 @@ class QuickBluePlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamHand
         if (knownGatts.find { it.device.address == deviceId } != null) {
           return result.success(null)
         }
-        val gatt = bluetoothManager.adapter
-                .getRemoteDevice(deviceId)
-                .connectGatt(context, false, gattCallback)
+        val remoteDevice = bluetoothManager.adapter.getRemoteDevice(deviceId)
+        val gatt = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+          remoteDevice.connectGatt(context, false, gattCallback, BluetoothDevice.TRANSPORT_LE)
+        } else {
+          remoteDevice.connectGatt(context, false, gattCallback)
+        }
         knownGatts.add(gatt)
         result.success(null)
         // TODO connecting
