@@ -229,7 +229,8 @@ extension SwiftQuickBluePlugin: CBPeripheralDelegate {
     self.messageConnector.sendMessage([
       "deviceId": peripheral.uuid.uuidString,
       "ServiceState": "discovered",
-      "services": [service.uuid.uuidStr],
+      "service": service.uuid.uuidStr,
+      "characteristics": service.characteristics!.map { $0.uuid.uuidStr }
     ])
   }
     

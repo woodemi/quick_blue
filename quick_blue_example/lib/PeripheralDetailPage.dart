@@ -49,8 +49,8 @@ class _PeripheralDetailPageState extends State<PeripheralDetailPage> {
     print('_handleConnectionChange $deviceId, $state');
   }
 
-  void _handleServiceDiscovery(String deviceId, String serviceId) {
-    print('_handleServiceDiscovery $deviceId, $serviceId');
+  void _handleServiceDiscovery(String deviceId, String serviceId, List<String> characteristicIds) {
+    print('_handleServiceDiscovery $deviceId, $serviceId, $characteristicIds');
   }
 
   void _handleValueChange(String deviceId, String characteristicId, Uint8List value) {
