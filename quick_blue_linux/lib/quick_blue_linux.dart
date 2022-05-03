@@ -152,6 +152,16 @@ class QuickBlueLinux extends QuickBluePlatform {
       if (bleInputProperty == BleInputProperty.disabled) {
         c.stopNotify();
       } else {
+        c.propertiesChanged.listen((names) {
+          if (names.contains('Value')) {
+            this
+                .onValueChanged
+                ?.call(deviceId, characteristic, Uint8List.fromList(c.value));
+          }
+        });
+        this
+            .onValueChanged
+            ?.call(deviceId, characteristic, Uint8List.fromList(c.value));
         c.startNotify();
       }
     }
