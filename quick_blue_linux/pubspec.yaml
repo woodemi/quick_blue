@@ -11,8 +11,9 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  quick_blue_platform_interface: ^0.3.2
-  bluez: ^0.7.9
+  quick_blue_platform_interface:
+    path: ../quick_blue_platform_interface
+  bluez: ^0.8.0
   collection: ^1.15.0
   logging: ^1.0.2
 

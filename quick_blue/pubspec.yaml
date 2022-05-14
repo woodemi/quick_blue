@@ -11,10 +11,14 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  quick_blue_platform_interface: ^0.3.2
-  quick_blue_macos: ^0.3.1+2
-  quick_blue_windows: ^0.3.2
-  quick_blue_linux: ^0.1.2
+  quick_blue_platform_interface:
+    path: ../quick_blue_platform_interface
+  quick_blue_macos:
+    path: ../quick_blue_macos
+  quick_blue_windows:
+    path: ../quick_blue_windows
+  quick_blue_linux:
+    path: ../quick_blue_linux
   convert: ^3.0.0
 
 dev_dependencies:
