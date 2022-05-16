@@ -39,6 +39,7 @@ using namespace winrt::Windows::Devices::Bluetooth::GenericAttributeProfile;
 
 using flutter::EncodableValue;
 using flutter::EncodableMap;
+using flutter::EncodableList;
 
 union uint16_t_union {
   uint16_t uint16;
@@ -153,7 +154,7 @@ class QuickBlueWindowsPlugin : public flutter::Plugin, public flutter::StreamHan
   winrt::fire_and_forget ConnectAsync(uint64_t bluetoothAddress);
   void BluetoothLEDevice_ConnectionStatusChanged(BluetoothLEDevice sender, IInspectable args);
   void CleanConnection(uint64_t bluetoothAddress);
-
+  winrt::fire_and_forget DiscoverServicesAsync(BluetoothDeviceAgent &bluetoothDeviceAgent);
   winrt::fire_and_forget SetNotifiableAsync(BluetoothDeviceAgent& bluetoothDeviceAgent, std::string service, std::string characteristic, std::string bleInputProperty);
   winrt::fire_and_forget RequestMtuAsync(BluetoothDeviceAgent& bluetoothDeviceAgent, uint64_t expectedMtu);
   winrt::fire_and_forget ReadValueAsync(BluetoothDeviceAgent& bluetoothDeviceAgent, std::string service, std::string characteristic);
@@ -247,8 +248,15 @@ void QuickBlueWindowsPlugin::HandleMethodCall(
     // TODO send `disconnected` message
     result->Success(nullptr);
   } else if (method_name.compare("discoverServices") == 0) {
-    // FIXME Unnecessary for Windows: https://github.com/woodemi/quick_blue/issues/76
-    result->NotImplemented();
+    auto args = std::get<EncodableMap>(*method_call.arguments());
+    auto deviceId = std::get<std::string>(args[EncodableValue("deviceId")]);
+    auto it = connectedDevices.find(std::stoull(deviceId));
+    if (it == connectedDevices.end()) {
+      result->Error("IllegalArgument", "Unknown devicesId:" + deviceId);
+      return;
+    }
+    DiscoverServicesAsync(*it->second);
+    result->Success(nullptr);
   } else if (method_name.compare("setNotifiable") == 0) {
     auto args = std::get<EncodableMap>(*method_call.arguments());
     auto deviceId = std::get<std::string>(args[EncodableValue("deviceId")]);
@@ -413,6 +421,36 @@ void QuickBlueWindowsPlugin::CleanConnection(uint64_t bluetoothAddress) {
     for (auto& tokenPair : deviceAgent->valueChangedTokens) {
       deviceAgent->gattCharacteristics.at(tokenPair.first).ValueChanged(tokenPair.second);
     }
+  }
+}
+
+winrt::fire_and_forget QuickBlueWindowsPlugin::DiscoverServicesAsync(BluetoothDeviceAgent &bluetoothDeviceAgent) {
+  auto serviceResult = co_await bluetoothDeviceAgent.device.GetGattServicesAsync();
+  if (serviceResult.Status() != GattCommunicationStatus::Success) {
+    message_connector_->Send(
+      EncodableMap{
+        {"deviceId", std::to_string(bluetoothDeviceAgent.device.BluetoothAddress())},
+        {"ServiceState", "discovered"}
+      }
+    );
+    co_return;
+  }
+
+  for (auto s : serviceResult.Services()) {
+    auto characteristicResult = co_await s.GetCharacteristicsAsync();
+    auto msg = EncodableMap{
+      {"deviceId", std::to_string(bluetoothDeviceAgent.device.BluetoothAddress())},
+      {"ServiceState", "discovered"},
+      {"service", to_uuidstr(s.Uuid())}
+    };
+    if (characteristicResult.Status() == GattCommunicationStatus::Success) {
+      EncodableList characteristics;
+      for (auto c : characteristicResult.Characteristics()) {
+        characteristics.push_back(to_uuidstr(c.Uuid()));
+      }
+      msg.insert({"characteristics", characteristics});
+    }
+    message_connector_->Send(msg);
   }
 }
 
