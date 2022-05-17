@@ -14,7 +14,7 @@ export 'models.dart';
 
 bool _manualDartRegistrationNeeded = true;
 
-QuickBluePlatform get _platform {
+QuickBluePlatform get _instance {
   // This is to manually endorse Dart implementations until automatic
   // registration of Dart plugins is implemented. For details see
   // https://github.com/flutter/flutter/issues/52267.
@@ -36,9 +36,16 @@ QuickBluePlatform get _platform {
 }
 
 class QuickBlue {
-  static void setLogger(QuickLogger logger) =>
-      _platform.setLogger(logger);
+  static QuickBluePlatform _platform = _instance;
 
+  static setInstance(QuickBluePlatform platform) {
+    QuickBluePlatform.instance = platform;
+    _platform = QuickBluePlatform.instance;
+  }
+
+  static void setLogger(QuickLogger logger) => _platform.setLogger(logger);
+
+ 
   static Future<bool> isBluetoothAvailable() =>
       _platform.isBluetoothAvailable();
 
