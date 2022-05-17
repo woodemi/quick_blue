@@ -33,7 +33,7 @@ class MethodChannelQuickBlue extends QuickBluePlatform {
   }
 
   @override
-  void startScan() {
+  void startScan({dynamic arguments}) {
     _method.invokeMethod('startScan')
         .then((_) => print('startScan invokeMethod success'));
   }
