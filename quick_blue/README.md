@@ -14,7 +14,7 @@ A cross-platform (Android/iOS/macOS/Windows/Linux) BluetoothLE plugin for Flutte
 | isBluetoothAvailable | ✔️ | ✔️ | ✔️ | ✔️ | ✔️ |
 | startScan/stopScan | ✔️ | ✔️ | ✔️ | ✔️ | ✔️ |
 | connect/disconnect | ✔️ | ✔️ | ✔️ | ✔️ |  |
-| discoverServices | ✔️ | ✔️ | ✔️ |  |  |
+| discoverServices | ✔️ | ✔️ | ✔️ | ✔️ |  |
 | setNotifiable | ✔️ | ✔️ | ✔️ | ✔️ |  |
 | readValue | ✔️ | ✔️ | ✔️ | ✔️ |  |
 | writeValue | ✔️ | ✔️ | ✔️ | ✔️ |  |

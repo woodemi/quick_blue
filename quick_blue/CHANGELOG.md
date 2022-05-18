@@ -1,3 +1,10 @@
+## [0.5.0-dev.0] - 2022.5.18
+
+- Fix discoverServices on Windows
+- Fix TRANSPORT_LE on Android
+- [BREAKING CHANGE] Add characteristics to OnServiceDiscoverd callback
+- Add option to change platform instance
+
 ## [0.4.1+1] - 2022.3.22
 
 - Add `manufacturerDataHead` & Refactor `manufacturerData` in BlueScanResult
