@@ -1,3 +1,7 @@
+## [0.3.2+1] - 2022.5.18
+
+- Fix discoverServices on Windows
+
 ## [0.3.2] - 2022.3.22
 
 - Refactor `manufacturerData` to `manufacturerDataHead`
