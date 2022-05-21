@@ -74,39 +74,41 @@ std::string to_uuidstr(winrt::guid guid) {
 
 static IAsyncOperation<GattDeviceServicesResult> GetGattServicesAsync(BluetoothLEDevice device) {
   try {
-    return co_await device.GetGattServicesAsync();
+    auto serviceResult = co_await device.GetGattServicesAsync();
+    co_return serviceResult;
   } catch(winrt::hresult_error const& ex) {
     OutputDebugString((L"GetGattServicesAsync " + ex.message() + L"\n").c_str());
-    return nullptr;
+    co_return nullptr;
   }
 }
 
 static IAsyncOperation<GattCharacteristicsResult> GetCharacteristicsAsync(GattDeviceService service) {
   try {
-    return co_await service.GetCharacteristicsAsync();
+    auto characteristicResult = co_await service.GetCharacteristicsAsync();
+    co_return characteristicResult;
   } catch(winrt::hresult_error const& ex) {
     OutputDebugString((L"GetCharacteristicsAsync " + ex.message() + L"\n").c_str());
-    return nullptr;
+    co_return nullptr;
   }
 }
 
 static IAsyncOperation<BluetoothLEDevice> FromBluetoothAddressAsync(uint64_t address) {
   try {
     auto device = co_await BluetoothLEDevice::FromBluetoothAddressAsync(address);
-    return device;
+    co_return device;
   } catch(winrt::hresult_error const& ex) {
     OutputDebugString((L"FromBluetoothAddressAsync " + ex.message() + L"\n").c_str());
-    return nullptr;
+    co_return nullptr;
   }
 }
 
 static IAsyncOperation<GattReadResult> ReadCharacteristicValueAsync(GattCharacteristic characteristic) {
   try {
-    auto readResult = characteristic.ReadValueAsync();
-    return readResult;
+    auto readResult = co_await characteristic.ReadValueAsync();
+    co_return readResult;
   } catch(winrt::hresult_error const& ex) {
     OutputDebugString((L"ReadCharacteristicValueAsync " + ex.message() + L"\n").c_str());
-    return nullptr;
+    co_return nullptr;
   }
 }
 
