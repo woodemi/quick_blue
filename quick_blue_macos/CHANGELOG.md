@@ -1,3 +1,7 @@
+## [0.4.0-dev.0] - 2022.6.3
+
+- [BREAKING CHANGE] Add characteristics to OnServiceDiscoverd callback
+
 ## [0.3.1+2] - 2022.3.20
 
 - Fix missing `deviceId` in `characteristicValue` message
