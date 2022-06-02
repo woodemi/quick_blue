@@ -1,3 +1,7 @@
+## [0.4.0-dev.0] - 2022.6.3
+
+- [BREAKING CHANGE] Add characteristics to OnServiceDiscoverd callback
+
 ## [0.3.2+1] - 2022.5.18
 
 - Fix discoverServices on Windows
