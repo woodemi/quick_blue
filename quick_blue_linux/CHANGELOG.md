@@ -1,3 +1,7 @@
+## 0.2.0-dev.0 - 2022.6.3
+
+- [BREAKING CHANGE] Add characteristics to OnServiceDiscoverd callback
+
 ## 0.1.2 - 2022.3.22
 
 - Refactor `manufacturerData` to `manufacturerDataHead`
