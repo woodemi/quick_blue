@@ -1,4 +1,4 @@
-## [0.5.0-dev.1] - 2022.5.18
+## [0.5.0-dev.2] - 2022.6.3
 
 - Update federated plugins' versions
 
