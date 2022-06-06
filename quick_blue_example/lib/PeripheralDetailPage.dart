@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:convert/convert.dart';
@@ -46,7 +47,7 @@ class _PeripheralDetailPageState extends State<PeripheralDetailPage> {
   }
 
   void _handleConnectionChange(String deviceId, BlueConnectionState state) {
-    print('_handleConnectionChange $deviceId, $state');
+    print('_handleConnectionChange $deviceId, ${state.value}');
   }
 
   void _handleServiceDiscovery(String deviceId, String serviceId, List<String> characteristicIds) {
@@ -80,6 +81,13 @@ class _PeripheralDetailPageState extends State<PeripheralDetailPage> {
                   QuickBlue.connect(widget.deviceId);
                 },
               ),
+              if(Platform.isWindows)
+                RaisedButton(
+                  child: Text('pair'),
+                  onPressed: () {
+                    QuickBlue.pair(widget.deviceId);
+                  },
+                ),
               RaisedButton(
                 child: Text('disconnect'),
                 onPressed: () {
