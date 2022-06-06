@@ -47,6 +47,8 @@ abstract class QuickBluePlatform extends PlatformInterface {
 
   void disconnect(String deviceId);
 
+  void pair(String deviceId);
+
   OnConnectionChanged? onConnectionChanged;
 
   void discoverServices(String deviceId);

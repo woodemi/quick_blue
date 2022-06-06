@@ -60,6 +60,8 @@ class QuickBlue {
 
   static void connect(String deviceId) => _platform.connect(deviceId);
 
+  static void pair(String deviceId) => _platform.pair(deviceId);
+
   static void disconnect(String deviceId) => _platform.disconnect(deviceId);
 
   static void setConnectionHandler(OnConnectionChanged? onConnectionChanged) {

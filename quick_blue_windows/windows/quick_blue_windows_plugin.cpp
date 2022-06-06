@@ -245,7 +245,12 @@ void QuickBlueWindowsPlugin::HandleMethodCall(
     auto deviceId = std::get<std::string>(args[EncodableValue("deviceId")]);
     ConnectAsync(std::stoull(deviceId));
     result->Success(nullptr);
-  } else if (method_name.compare("disconnect") == 0) {
+  }else if (method_name.compare("pair") == 0) {
+    auto args = std::get<EncodableMap>(*method_call.arguments());
+    auto deviceId = std::get<std::string>(args[EncodableValue("deviceId")]);
+    PairAsync(std::stoull(deviceId), DevicePairingProtectionLevel::Encryption);
+    result->Success(nullptr);
+  }else if (method_name.compare("disconnect") == 0) {
     auto args = std::get<EncodableMap>(*method_call.arguments());
     auto deviceId = std::get<std::string>(args[EncodableValue("deviceId")]);
     CleanConnection(std::stoull(deviceId));
@@ -422,7 +427,6 @@ winrt::fire_and_forget QuickBlueWindowsPlugin::ConnectAsync(uint64_t bluetoothAd
     {"deviceId", std::to_string(bluetoothAddress)},
     {"ConnectionState", "connected"},
   });
-  PairAsync(bluetoothAddress, DevicePairingProtectionLevel::Encryption);
 }
 
 void QuickBlueWindowsPlugin::BluetoothLEDevice_PairingRequested(DeviceInformationCustomPairing sender, DevicePairingRequestedEventArgs args) {
