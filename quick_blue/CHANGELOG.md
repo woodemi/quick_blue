@@ -1,3 +1,7 @@
+## [0.5.0-dev.2] - 2022.6.3
+
+- Update federated plugins' versions
+
 ## [0.5.0-dev.0] - 2022.5.18
 
 - Fix discoverServices on Windows
