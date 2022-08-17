@@ -45,20 +45,21 @@ class QuickBlueLinux extends QuickBluePlatform {
   }
 
   @override
-  void startScan() async {
+  Future<void> startScan() async {
     await _ensureInitialized();
     _log('startScan invoke success');
 
-    _activeAdapter!.startDiscovery();
+    final ret = _activeAdapter!.startDiscovery();
     _client.devices.forEach(_onDeviceAdd);
+    return ret;
   }
 
   @override
-  void stopScan() async {
+  Future<void> stopScan() async {
     await _ensureInitialized();
     _log('stopScan invoke success');
 
-    _activeAdapter!.stopDiscovery();
+    return _activeAdapter!.stopDiscovery();
   }
 
   // FIXME Close
@@ -77,19 +78,19 @@ class QuickBlueLinux extends QuickBluePlatform {
   }
 
   @override
-  void connect(String deviceId) {
+  Future<void> connect(String deviceId) {
     // TODO: implement connect
     throw UnimplementedError();
   }
 
   @override
-  void disconnect(String deviceId) {
+  Future<void> disconnect(String deviceId) {
     // TODO: implement disconnect
     throw UnimplementedError();
   }
 
   @override
-  void discoverServices(String deviceId) {
+  Future<void> discoverServices(String deviceId) {
     // TODO: implement discoverServices
     throw UnimplementedError();
   }

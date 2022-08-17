@@ -28,19 +28,18 @@ class MethodChannelQuickBlue extends QuickBluePlatform {
 
   @override
   Future<bool> isBluetoothAvailable() async {
-    bool result = await _method.invokeMethod('isBluetoothAvailable');
-    return result;
+    return await _method.invokeMethod('isBluetoothAvailable');
   }
 
   @override
-  void startScan() {
-    _method.invokeMethod('startScan')
+  Future<void> startScan() {
+    return _method.invokeMethod('startScan')
         .then((_) => print('startScan invokeMethod success'));
   }
 
   @override
-  void stopScan() {
-    _method.invokeMethod('stopScan')
+  Future<void> stopScan() {
+    return _method.invokeMethod('stopScan')
         .then((_) => print('stopScan invokeMethod success'));
   }
 
@@ -50,22 +49,22 @@ class MethodChannelQuickBlue extends QuickBluePlatform {
   Stream<dynamic> get scanResultStream => _scanResultStream;
 
   @override
-  void connect(String deviceId) {
-    _method.invokeMethod('connect', {
+  Future<void> connect(String deviceId) {
+    return _method.invokeMethod('connect', {
       'deviceId': deviceId,
     }).then((_) => _log('connect invokeMethod success'));
   }
 
   @override
-  void disconnect(String deviceId) {
-    _method.invokeMethod('disconnect', {
+  Future<void> disconnect(String deviceId) {
+    return _method.invokeMethod('disconnect', {
       'deviceId': deviceId,
     }).then((_) => _log('disconnect invokeMethod success'));
   }
 
   @override
-  void discoverServices(String deviceId) {
-    _method.invokeMethod('discoverServices', {
+  Future<void> discoverServices(String deviceId) {
+    return _method.invokeMethod('discoverServices', {
       'deviceId': deviceId,
     }).then((_) => _log('discoverServices invokeMethod success'));
   }
@@ -96,7 +95,7 @@ class MethodChannelQuickBlue extends QuickBluePlatform {
 
   @override
   Future<void> setNotifiable(String deviceId, String service, String characteristic, BleInputProperty bleInputProperty) async {
-    _method.invokeMethod('setNotifiable', {
+    return _method.invokeMethod('setNotifiable', {
       'deviceId': deviceId,
       'service': service,
       'characteristic': characteristic,
@@ -106,7 +105,7 @@ class MethodChannelQuickBlue extends QuickBluePlatform {
 
   @override
   Future<void> readValue(String deviceId, String service, String characteristic) async {
-    _method.invokeMethod('readValue', {
+    return _method.invokeMethod('readValue', {
       'deviceId': deviceId,
       'service': service,
       'characteristic': characteristic,
@@ -115,7 +114,7 @@ class MethodChannelQuickBlue extends QuickBluePlatform {
 
   @override
   Future<void> writeValue(String deviceId, String service, String characteristic, Uint8List value, BleOutputProperty bleOutputProperty) async {
-    _method.invokeMethod('writeValue', {
+    return _method.invokeMethod('writeValue', {
       'deviceId': deviceId,
       'service': service,
       'characteristic': characteristic,
@@ -137,7 +136,9 @@ class MethodChannelQuickBlue extends QuickBluePlatform {
     _method.invokeMethod('requestMtu', {
       'deviceId': deviceId,
       'expectedMtu': expectedMtu,
-    }).then((_) => _log('requestMtu invokeMethod success'));
+    }).then((_) => _log('requestMtu invokeMethod success')).catchError((e) {
+      _log("requestMtu error: $e"); //TODO Return future that errors if this errors
+    });
     return await _mtuConfigController.stream.first;
   }
 }
