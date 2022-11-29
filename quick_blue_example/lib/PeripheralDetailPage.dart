@@ -74,13 +74,13 @@ class _PeripheralDetailPageState extends State<PeripheralDetailPage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: <Widget>[
-              RaisedButton(
+              ElevatedButton(
                 child: Text('connect'),
                 onPressed: () {
                   QuickBlue.connect(widget.deviceId);
                 },
               ),
-              RaisedButton(
+              ElevatedButton(
                 child: Text('disconnect'),
                 onPressed: () {
                   QuickBlue.disconnect(widget.deviceId);
@@ -91,7 +91,7 @@ class _PeripheralDetailPageState extends State<PeripheralDetailPage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: <Widget>[
-              RaisedButton(
+              ElevatedButton(
                 child: Text('discoverServices'),
                 onPressed: () {
                   QuickBlue.discoverServices(widget.deviceId);
@@ -99,7 +99,7 @@ class _PeripheralDetailPageState extends State<PeripheralDetailPage> {
               ),
             ],
           ),
-          RaisedButton(
+          ElevatedButton(
             child: Text('setNotifiable'),
             onPressed: () {
               QuickBlue.setNotifiable(
@@ -125,7 +125,7 @@ class _PeripheralDetailPageState extends State<PeripheralDetailPage> {
               labelText: 'Binary code',
             ),
           ),
-          RaisedButton(
+          ElevatedButton(
             child: Text('send'),
             onPressed: () {
               var value = Uint8List.fromList(hex.decode(binaryCode.text));
@@ -134,7 +134,7 @@ class _PeripheralDetailPageState extends State<PeripheralDetailPage> {
                   value, BleOutputProperty.withResponse);
             },
           ),
-          RaisedButton(
+          ElevatedButton(
             child: Text('readValue battery'),
             onPressed: () async {
               await QuickBlue.readValue(
@@ -143,7 +143,7 @@ class _PeripheralDetailPageState extends State<PeripheralDetailPage> {
                   GSS_CHAR__BATTERY_LEVEL);
             },
           ),
-          RaisedButton(
+          ElevatedButton(
             child: Text('requestMtu'),
             onPressed: () async {
               var mtu = await QuickBlue.requestMtu(widget.deviceId, WOODEMI_MTU_WUART);
