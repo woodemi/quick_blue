@@ -54,6 +54,8 @@ public class SwiftQuickBluePlugin: NSObject, FlutterPlugin {
 
   private var scanResultSink: FlutterEventSink?
   private var messageConnector: FlutterBasicMessageChannel!
+  
+  private var nilDescription: String { "nil" }
 
   override init() {
     super.init()
@@ -161,7 +163,7 @@ extension SwiftQuickBluePlugin: CBCentralManagerDelegate {
   }
 
   public func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String: Any], rssi RSSI: NSNumber) {
-    print("centralManager:didDiscoverPeripheral \(peripheral.name) \(peripheral.uuid.uuidString)")
+    print("centralManager:didDiscoverPeripheral \(peripheral.name ?? nilDescription) \(peripheral.uuid.uuidString)")
     discoveredPeripherals[peripheral.uuid.uuidString] = peripheral
 
     let manufacturerData = advertisementData[CBAdvertisementDataManufacturerDataKey] as? Data
@@ -182,7 +184,7 @@ extension SwiftQuickBluePlugin: CBCentralManagerDelegate {
   }
   
   public func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
-    print("centralManager:didDisconnectPeripheral: \(peripheral.uuid.uuidString) error: \(error)")
+    print("centralManager:didDisconnectPeripheral: \(peripheral.uuid.uuidString) error: \(error?.localizedDescription ?? nilDescription)")
     messageConnector.sendMessage([
       "deviceId": peripheral.uuid.uuidString,
       "ConnectionState": "disconnected",
@@ -216,7 +218,7 @@ extension SwiftQuickBluePlugin: FlutterStreamHandler {
 
 extension SwiftQuickBluePlugin: CBPeripheralDelegate {
   public func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) {
-    print("peripheral: \(peripheral.uuid.uuidString) didDiscoverServices: \(error)")
+    print("peripheral: \(peripheral.uuid.uuidString) didDiscoverServices: \(error?.localizedDescription ?? nilDescription)")
     for service in peripheral.services! {
       peripheral.discoverCharacteristics(nil, for: service)
     }
@@ -235,11 +237,13 @@ extension SwiftQuickBluePlugin: CBPeripheralDelegate {
   }
     
   public func peripheral(_ peripheral: CBPeripheral, didWriteValueFor characteristic: CBCharacteristic, error: Error?) {
-    print("peripheral:didWriteValueForCharacteristic \(characteristic.uuid.uuidStr) \(characteristic.value as? NSData) error: \(error)")
+    let value = characteristic.value as? NSData
+    print("peripheral:didWriteValueForCharacteristic \(characteristic.uuid.uuidStr) \(value?.description ?? nilDescription) error: \(error?.localizedDescription ?? nilDescription)")
   }
     
   public func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
-    print("peripheral:didUpdateValueForForCharacteristic \(characteristic.uuid) \(characteristic.value as! NSData) error: \(error)")
+    let value = characteristic.value as? NSData
+    print("peripheral:didUpdateValueForForCharacteristic \(characteristic.uuid) \(value?.description ?? nilDescription) error: \(error?.localizedDescription ?? nilDescription)")
     self.messageConnector.sendMessage([
       "deviceId": peripheral.uuid.uuidString,
       "characteristicValue": [
