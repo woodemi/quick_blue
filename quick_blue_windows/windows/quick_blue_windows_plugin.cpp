@@ -212,7 +212,9 @@ QuickBlueWindowsPlugin::~QuickBlueWindowsPlugin() {}
 
 winrt::fire_and_forget QuickBlueWindowsPlugin::InitializeAsync() {
   auto bluetoothAdapter = co_await BluetoothAdapter::GetDefaultAsync();
-  bluetoothRadio = co_await bluetoothAdapter.GetRadioAsync();
+  if (bluetoothAdapter) {
+    bluetoothRadio = co_await bluetoothAdapter.GetRadioAsync();
+  }
 }
 
 void QuickBlueWindowsPlugin::HandleMethodCall(
