@@ -12,7 +12,7 @@ dependencies:
   flutter:
     sdk: flutter
   quick_blue_platform_interface: ^0.4.0-dev.0
-  bluez: ^0.7.9
+  bluez: ^0.8.1
   collection: ^1.15.0
   logging: ^1.0.2
 

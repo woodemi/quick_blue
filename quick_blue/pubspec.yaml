@@ -5,7 +5,7 @@ homepage: https://github.com/woodemi/quick_blue
 repository: https://github.com/woodemi/quick_blue/tree/master/quick_blue
 
 environment:
-  sdk: ">=2.13.0 <3.0.0"
+  sdk: ">=2.18.0 <4.0.0"
   flutter: ">=2.2.0"
 
 dependencies:
@@ -14,7 +14,8 @@ dependencies:
   quick_blue_platform_interface: ^0.4.0-dev.0
   quick_blue_macos: ^0.4.0-dev.0
   quick_blue_windows: ^0.4.0-dev.0
-  quick_blue_linux: ^0.2.0-dev.0
+  quick_blue_linux:
+    path: "../quick_blue_linux"
   convert: ^3.0.0
 
 dev_dependencies:

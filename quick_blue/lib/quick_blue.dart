@@ -3,7 +3,6 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:quick_blue_linux/quick_blue_linux.dart';
-import 'package:quick_blue_platform_interface/method_channel_quick_blue.dart';
 import 'package:quick_blue_platform_interface/quick_blue_platform_interface.dart';
 
 import 'models.dart';
