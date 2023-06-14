@@ -77,7 +77,7 @@ class QuickBlueLinux extends QuickBluePlatform {
   }
 
   @override
-  void connect(String deviceId) {
+  void connect(String deviceId, {bool? auto}) {
     // TODO: implement connect
     throw UnimplementedError();
   }

@@ -57,7 +57,7 @@ class QuickBlue {
       .map((item) => BlueScanResult.fromMap(item));
   }
 
-  static void connect(String deviceId) => _platform.connect(deviceId);
+  static void connect(String deviceId, {bool? auto}) => _platform.connect(deviceId, auto: auto);
 
   static void disconnect(String deviceId) => _platform.disconnect(deviceId);
 

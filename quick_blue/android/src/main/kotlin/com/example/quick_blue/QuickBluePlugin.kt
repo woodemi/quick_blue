@@ -74,7 +74,25 @@ class QuickBluePlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamHand
         bluetoothManager.adapter.bluetoothLeScanner?.stopScan(scanCallback)
         result.success(null)
       }
+      "autoConnect" -> {
+        Log.v(TAG, "calling auto connect");
+        val deviceId = call.argument<String>("deviceId")!!
+        if (knownGatts.find { it.device.address == deviceId } != null) {
+          return result.success(null)
+        }
+        val remoteDevice = bluetoothManager.adapter.getRemoteDevice(deviceId)
+        val gatt = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+          remoteDevice.connectGatt(context, true, gattCallback, BluetoothDevice.TRANSPORT_LE)
+        } else {
+          remoteDevice.connectGatt(context, true, gattCallback)
+        }
+        knownGatts.add(gatt)
+        result.success(null)
+        // TODO connecting
+
+      }
       "connect" -> {
+        Log.v(TAG, "calling normal connect");
         val deviceId = call.argument<String>("deviceId")!!
         if (knownGatts.find { it.device.address == deviceId } != null) {
           return result.success(null)
@@ -263,7 +281,6 @@ class QuickBluePlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamHand
     }
 
     override fun onCharacteristicChanged(gatt: BluetoothGatt, characteristic: BluetoothGattCharacteristic) {
-      Log.v(TAG, "onCharacteristicChanged ${characteristic.uuid}, ${characteristic.value.contentToString()}")
       sendMessage(messageConnector, mapOf(
         "deviceId" to gatt.device.address,
         "characteristicValue" to mapOf(
