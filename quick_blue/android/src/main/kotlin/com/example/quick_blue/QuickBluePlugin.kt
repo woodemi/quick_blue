@@ -63,9 +63,6 @@ class QuickBluePlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamHand
 
   override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {
     when (call.method) {
-      "reinit" -> {
-
-      }
       "isBluetoothAvailable" -> {
         result.success(bluetoothManager.adapter.isEnabled)
       }
@@ -78,7 +75,6 @@ class QuickBluePlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamHand
         result.success(null)
       }
       "autoConnect" -> {
-        Log.v(TAG, "calling auto connect");
         val deviceId = call.argument<String>("deviceId")!!
         if (knownGatts.find { it.device.address == deviceId } != null) {
           return result.success(null)
@@ -95,7 +91,6 @@ class QuickBluePlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamHand
 
       }
       "connect" -> {
-        Log.v(TAG, "calling normal connect");
         val deviceId = call.argument<String>("deviceId")!!
         if (knownGatts.find { it.device.address == deviceId } != null) {
           return result.success(null)
@@ -183,6 +178,7 @@ class QuickBluePlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamHand
   private fun cleanConnection(gatt: BluetoothGatt) {
     knownGatts.remove(gatt)
     gatt.disconnect()
+    gatt.close()
   }
 
   private val scanCallback = object : ScanCallback() {
