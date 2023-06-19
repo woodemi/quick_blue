@@ -17,7 +17,8 @@ class QuickBlueLinux extends QuickBluePlatform {
     if (!isInitialized) {
       await _client.connect();
 
-      _activeAdapter ??= _client.adapters.firstWhereOrNull((adapter) => adapter.powered);
+      _activeAdapter ??=
+          _client.adapters.firstWhereOrNull((adapter) => adapter.powered);
 
       _client.deviceAdded.listen(_onDeviceAdd);
 
@@ -45,12 +46,22 @@ class QuickBlueLinux extends QuickBluePlatform {
   }
 
   @override
+  void reinit() {}
+
+  @override
   void startScan() async {
     await _ensureInitialized();
     _log('startScan invoke success');
 
-    _activeAdapter!.startDiscovery();
-    _client.devices.forEach(_onDeviceAdd);
+    try {
+      await _activeAdapter!.startDiscovery();
+    } catch (e) {
+      _log('scan was already running');
+      if (!e.toString().contains("org.bluez.Error.InProgress")) {
+        rethrow;
+      }
+    }
+    _client.devices.where((d) => d.rssi < 0).forEach(_onDeviceAdd);
   }
 
   @override
@@ -58,11 +69,19 @@ class QuickBlueLinux extends QuickBluePlatform {
     await _ensureInitialized();
     _log('stopScan invoke success');
 
-    _activeAdapter!.stopDiscovery();
+    try {
+      _activeAdapter!.stopDiscovery();
+    } catch (e) {
+      _log("no scan was running");
+    }
   }
 
+  BlueZDevice? _device(String id) =>
+      _client.devices.firstWhereOrNull((e) => e.address == id);
+
   // FIXME Close
-  final StreamController<dynamic> _scanResultController = StreamController.broadcast();
+  final StreamController<dynamic> _scanResultController =
+      StreamController.broadcast();
 
   @override
   Stream get scanResultStream => _scanResultController.stream;
@@ -78,44 +97,71 @@ class QuickBlueLinux extends QuickBluePlatform {
 
   @override
   void connect(String deviceId, {bool? auto}) {
-    // TODO: implement connect
-    throw UnimplementedError();
+    _device(deviceId)!.connect().whenComplete(() {
+      if (onConnectionChanged != null) {
+        onConnectionChanged!(deviceId, BlueConnectionState.connected);
+      }
+    });
+    _device(deviceId)!.setTrusted(true);
   }
 
   @override
   void disconnect(String deviceId) {
-    // TODO: implement disconnect
-    throw UnimplementedError();
+    _device(deviceId)!.disconnect().whenComplete(() {
+      if (onConnectionChanged != null) {
+        onConnectionChanged!(deviceId, BlueConnectionState.disconnected);
+      }
+    });
   }
 
   @override
   void discoverServices(String deviceId) {
-    // TODO: implement discoverServices
-    throw UnimplementedError();
+    if (onServiceDiscovered == null) return;
+    _device(deviceId)!.gattServices.forEach((e) {
+      print("e.uuid: " + e.characteristics.join(" - "));
+      onServiceDiscovered!(deviceId, e.uuid.toString(),
+          e.characteristics.map((e) => e.uuid.toString()).toList());
+    });
+  }
+
+  BlueZGattCharacteristic? _findService(
+          String deviceId, String service, String characteristic) =>
+      _device(deviceId)
+          ?.gattServices
+          .firstWhereOrNull((s) => s.uuid.toString() == service)
+          ?.characteristics
+          .firstWhereOrNull((char) => char.uuid.toString() == characteristic);
+
+  @override
+  Future<void> setNotifiable(String deviceId, String service,
+      String characteristic, BleInputProperty bleInputProperty) async {
+    await _findService(deviceId, service, characteristic)!.startNotify();
   }
 
   @override
-  Future<void> setNotifiable(String deviceId, String service, String characteristic, BleInputProperty bleInputProperty) {
-    // TODO: implement setNotifiable
-    throw UnimplementedError();
+  Future<void> readValue(
+      String deviceId, String service, String characteristic) async {
+    final val =
+        await _findService(deviceId, service, characteristic)!.readValue();
+    if (onValueChanged != null) {
+      onValueChanged!(service, characteristic, Uint8List.fromList(val));
+    }
   }
 
   @override
-  Future<void> readValue(String deviceId, String service, String characteristic) {
-    // TODO: implement readValue
-    throw UnimplementedError();
-  }
+  Future<void> writeValue(
+          String deviceId,
+          String service,
+          String characteristic,
+          Uint8List value,
+          BleOutputProperty bleOutputProperty) async =>
+      await _findService(deviceId, service, characteristic)!
+          .writeValue(value, type: bleOutputProperty.toBluez());
 
   @override
-  Future<void> writeValue(String deviceId, String service, String characteristic, Uint8List value, BleOutputProperty bleOutputProperty) {
-    // TODO: implement writeValue
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<int> requestMtu(String deviceId, int expectedMtu) {
-    // TODO: implement requestMtu
-    throw UnimplementedError();
+  Future<int> requestMtu(String deviceId, int expectedMtu) async {
+    _log("request mtu is not supported on linux");
+    return -1;
   }
 }
 
@@ -127,4 +173,11 @@ extension BlueZDeviceExtension on BlueZDevice {
       ..sort((a, b) => a.key.id - b.key.id);
     return Uint8List.fromList(sorted.first.value);
   }
+}
+
+extension ToBluez on BleOutputProperty {
+  BlueZGattCharacteristicWriteType toBluez() =>
+      this == BleOutputProperty.withResponse
+          ? BlueZGattCharacteristicWriteType.request
+          : BlueZGattCharacteristicWriteType.command;
 }

@@ -23,9 +23,7 @@ class PeripheralDetailPage extends StatefulWidget {
   PeripheralDetailPage(this.deviceId);
 
   @override
-  State<StatefulWidget> createState() {
-    return _PeripheralDetailPageState();
-  }
+  State<StatefulWidget> createState() => _PeripheralDetailPageState();
 }
 
 

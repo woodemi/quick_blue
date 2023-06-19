@@ -44,9 +44,10 @@ class QuickBlue {
 
   static void setLogger(QuickLogger logger) => _platform.setLogger(logger);
 
- 
   static Future<bool> isBluetoothAvailable() =>
       _platform.isBluetoothAvailable();
+
+  static reinit() => _platform.reinit();
 
   static void startScan() => _platform.startScan();
 
@@ -54,10 +55,11 @@ class QuickBlue {
 
   static Stream<BlueScanResult> get scanResultStream {
     return _platform.scanResultStream
-      .map((item) => BlueScanResult.fromMap(item));
+        .map((item) => BlueScanResult.fromMap(item));
   }
 
-  static void connect(String deviceId, {bool? auto}) => _platform.connect(deviceId, auto: auto);
+  static void connect(String deviceId, {bool? auto}) =>
+      _platform.connect(deviceId, auto: auto);
 
   static void disconnect(String deviceId) => _platform.disconnect(deviceId);
 
@@ -65,27 +67,38 @@ class QuickBlue {
     _platform.onConnectionChanged = onConnectionChanged;
   }
 
-  static void discoverServices(String deviceId) => _platform.discoverServices(deviceId);
+  static void discoverServices(String deviceId) =>
+      _platform.discoverServices(deviceId);
 
   static void setServiceHandler(OnServiceDiscovered? onServiceDiscovered) {
     _platform.onServiceDiscovered = onServiceDiscovered;
   }
 
-  static Future<void> setNotifiable(String deviceId, String service, String characteristic, BleInputProperty bleInputProperty) {
-    return _platform.setNotifiable(deviceId, service, characteristic, bleInputProperty);
+  static Future<void> setNotifiable(String deviceId, String service,
+      String characteristic, BleInputProperty bleInputProperty) {
+    return _platform.setNotifiable(
+        deviceId, service, characteristic, bleInputProperty);
   }
 
   static void setValueHandler(OnValueChanged? onValueChanged) {
     _platform.onValueChanged = onValueChanged;
   }
 
-  static Future<void> readValue(String deviceId, String service, String characteristic) {
+  static Future<void> readValue(
+      String deviceId, String service, String characteristic) {
     return _platform.readValue(deviceId, service, characteristic);
   }
 
-  static Future<void> writeValue(String deviceId, String service, String characteristic, Uint8List value, BleOutputProperty bleOutputProperty) {
-    return _platform.writeValue(deviceId, service, characteristic, value, bleOutputProperty);
+  static Future<void> writeValue(
+      String deviceId,
+      String service,
+      String characteristic,
+      Uint8List value,
+      BleOutputProperty bleOutputProperty) {
+    return _platform.writeValue(
+        deviceId, service, characteristic, value, bleOutputProperty);
   }
 
-  static Future<int> requestMtu(String deviceId, int expectedMtu) => _platform.requestMtu(deviceId, expectedMtu);
+  static Future<int> requestMtu(String deviceId, int expectedMtu) =>
+      _platform.requestMtu(deviceId, expectedMtu);
 }

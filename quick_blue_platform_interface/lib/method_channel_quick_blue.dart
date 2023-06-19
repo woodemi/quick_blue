@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:flutter/services.dart';
 import 'package:logging/logging.dart';
@@ -166,5 +165,12 @@ class MethodChannelQuickBlue extends QuickBluePlatform {
       'expectedMtu': expectedMtu,
     }).then((_) => _log('requestMtu invokeMethod success'));
     return await _mtuConfigController.stream.first;
+  }
+
+  @override
+  void reinit() {
+    if (Platform.isAndroid) {
+      _method.invokeMethod('reinit');
+    }
   }
 }

@@ -42,29 +42,42 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: Scaffold(
-        appBar: AppBar(
-          title: const Text('Plugin example app'),
-        ),
-        body: Column(
-          children: [
-            FutureBuilder(
-              future: QuickBlue.isBluetoothAvailable(),
-              builder: (context, snapshot) {
-                var available = snapshot.data?.toString() ?? '...';
-                return Text('Bluetooth init: $available');
-              },
-            ),
-            _buildButtons(),
-            Divider(
-              color: Colors.blue,
-            ),
-            _buildListView(),
-            _buildPermissionWarning(),
-          ],
-        ),
-      ),
-    );
+        theme: ThemeData.dark(useMaterial3: true),
+        themeMode: ThemeMode.dark,
+        home: Scaffold(
+          appBar: AppBar(
+            title: const Text('Plugin example app'),
+          ),
+          body: Builder(
+            builder: (context) {
+              Timer(
+                  Duration(milliseconds: 1),
+                  () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            PeripheralDetailPage("00:18:DA:0C:79:0C"),
+                      )));
+              return Column(
+                children: [
+                  FutureBuilder(
+                    future: QuickBlue.isBluetoothAvailable(),
+                    builder: (context, snapshot) {
+                      var available = snapshot.data?.toString() ?? '...';
+                      return Text('Bluetooth init: $available');
+                    },
+                  ),
+                  _buildButtons(),
+                  Divider(
+                    color: Colors.blue,
+                  ),
+                  _buildListView(),
+                  _buildPermissionWarning(),
+                ],
+              );
+            },
+          ),
+        ));
   }
 
   Widget _buildButtons() {
