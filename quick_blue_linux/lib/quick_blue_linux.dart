@@ -17,7 +17,8 @@ class QuickBlueLinux extends QuickBluePlatform {
     if (!isInitialized) {
       await _client.connect();
 
-      _activeAdapter ??= _client.adapters.firstWhereOrNull((adapter) => adapter.powered);
+      _activeAdapter ??=
+          _client.adapters.firstWhereOrNull((adapter) => adapter.powered);
 
       _client.deviceAdded.listen(_onDeviceAdd);
 
@@ -45,7 +46,7 @@ class QuickBlueLinux extends QuickBluePlatform {
   }
 
   @override
-  void startScan() async {
+  void startScan({List<String>? forServices}) async {
     await _ensureInitialized();
     _log('startScan invoke success');
 
@@ -62,7 +63,8 @@ class QuickBlueLinux extends QuickBluePlatform {
   }
 
   // FIXME Close
-  final StreamController<dynamic> _scanResultController = StreamController.broadcast();
+  final StreamController<dynamic> _scanResultController =
+      StreamController.broadcast();
 
   @override
   Stream get scanResultStream => _scanResultController.stream;
@@ -95,19 +97,26 @@ class QuickBlueLinux extends QuickBluePlatform {
   }
 
   @override
-  Future<void> setNotifiable(String deviceId, String service, String characteristic, BleInputProperty bleInputProperty) {
+  Future<void> setNotifiable(String deviceId, String service,
+      String characteristic, BleInputProperty bleInputProperty) {
     // TODO: implement setNotifiable
     throw UnimplementedError();
   }
 
   @override
-  Future<void> readValue(String deviceId, String service, String characteristic) {
+  Future<void> readValue(
+      String deviceId, String service, String characteristic) {
     // TODO: implement readValue
     throw UnimplementedError();
   }
 
   @override
-  Future<void> writeValue(String deviceId, String service, String characteristic, Uint8List value, BleOutputProperty bleOutputProperty) {
+  Future<void> writeValue(
+      String deviceId,
+      String service,
+      String characteristic,
+      Uint8List value,
+      BleOutputProperty bleOutputProperty) {
     // TODO: implement writeValue
     throw UnimplementedError();
   }

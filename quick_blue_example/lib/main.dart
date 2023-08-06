@@ -71,13 +71,15 @@ class _MyAppState extends State<MyApp> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: <Widget>[
-        RaisedButton(
+        ElevatedButton(
           child: Text('startScan'),
           onPressed: () {
-            QuickBlue.startScan();
+            QuickBlue.startScan(
+              forServices: ['86C3810E-F171-40D9-A117-26B300768CD6'],
+            );
           },
         ),
-        RaisedButton(
+        ElevatedButton(
           child: Text('stopScan'),
           onPressed: () {
             QuickBlue.stopScan();

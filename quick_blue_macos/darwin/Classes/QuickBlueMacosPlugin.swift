@@ -1,6 +1,9 @@
 import CoreBluetooth
+#if os(macOS)
+import FlutterMacOS
+#else
 import Flutter
-import UIKit
+#endif
 
 let GATT_HEADER_LENGTH = 3
 
@@ -37,18 +40,18 @@ extension CBPeripheral {
   }
 }
 
-public class SwiftQuickBluePlugin: NSObject, FlutterPlugin {
+public class QuickBlueMacosPlugin: NSObject, FlutterPlugin {
   public static func register(with registrar: FlutterPluginRegistrar) {
-    let method = FlutterMethodChannel(name: "quick_blue/method", binaryMessenger: registrar.messenger())
-    let eventScanResult = FlutterEventChannel(name: "quick_blue/event.scanResult", binaryMessenger: registrar.messenger())
-    let messageConnector = FlutterBasicMessageChannel(name: "quick_blue/message.connector", binaryMessenger: registrar.messenger())
+    let method = FlutterMethodChannel(name: "quick_blue/method", binaryMessenger: registrar.messenger)
+    let eventScanResult = FlutterEventChannel(name: "quick_blue/event.scanResult", binaryMessenger: registrar.messenger)
+    let messageConnector = FlutterBasicMessageChannel(name: "quick_blue/message.connector", binaryMessenger: registrar.messenger)
 
-    let instance = SwiftQuickBluePlugin()
+    let instance = QuickBlueMacosPlugin()
     registrar.addMethodCallDelegate(instance, channel: method)
     eventScanResult.setStreamHandler(instance)
     instance.messageConnector = messageConnector
   }
-    
+
   private var manager: CBCentralManager!
   private var discoveredPeripherals: Dictionary<String, CBPeripheral>!
 
@@ -66,7 +69,9 @@ public class SwiftQuickBluePlugin: NSObject, FlutterPlugin {
     case "isBluetoothAvailable":
       result(manager.state == .poweredOn)
     case "startScan":
-      manager.scanForPeripherals(withServices: nil)
+      let arguments = call.arguments as! Dictionary<String, Any>
+      let services = (arguments["forServices"] as? [String])?.map { CBUUID(string: $0) }
+      manager.scanForPeripherals(withServices: services)
       result(nil)
     case "stopScan":
       manager.stopScan()
@@ -155,13 +160,13 @@ public class SwiftQuickBluePlugin: NSObject, FlutterPlugin {
   }
 }
 
-extension SwiftQuickBluePlugin: CBCentralManagerDelegate {
+extension QuickBlueMacosPlugin: CBCentralManagerDelegate {
   public func centralManagerDidUpdateState(_ central: CBCentralManager) {
     print("centralManagerDidUpdateState \(central.state.rawValue)")
   }
 
   public func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String: Any], rssi RSSI: NSNumber) {
-    print("centralManager:didDiscoverPeripheral \(peripheral.name) \(peripheral.uuid.uuidString)")
+      print("centralManager:didDiscoverPeripheral \(String(describing: peripheral.name)) \(peripheral.uuid.uuidString)")
     discoveredPeripherals[peripheral.uuid.uuidString] = peripheral
 
     let manufacturerData = advertisementData[CBAdvertisementDataManufacturerDataKey] as? Data
@@ -180,9 +185,9 @@ extension SwiftQuickBluePlugin: CBCentralManagerDelegate {
       "ConnectionState": "connected",
     ])
   }
-  
+    
   public func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
-    print("centralManager:didDisconnectPeripheral: \(peripheral.uuid.uuidString) error: \(error)")
+      print("centralManager:didDisconnectPeripheral: \(peripheral.uuid.uuidString) error: \(String(describing: error))")
     messageConnector.sendMessage([
       "deviceId": peripheral.uuid.uuidString,
       "ConnectionState": "disconnected",
@@ -190,7 +195,7 @@ extension SwiftQuickBluePlugin: CBCentralManagerDelegate {
   }
 }
 
-extension SwiftQuickBluePlugin: FlutterStreamHandler {
+extension QuickBlueMacosPlugin: FlutterStreamHandler {
   open func onListen(withArguments arguments: Any?, eventSink events: @escaping FlutterEventSink) -> FlutterError? {
     guard let args = arguments as? Dictionary<String, Any>, let name = args["name"] as? String else {
       return nil
@@ -214,9 +219,9 @@ extension SwiftQuickBluePlugin: FlutterStreamHandler {
   }
 }
 
-extension SwiftQuickBluePlugin: CBPeripheralDelegate {
+extension QuickBlueMacosPlugin: CBPeripheralDelegate {
   public func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) {
-    print("peripheral: \(peripheral.uuid.uuidString) didDiscoverServices: \(error)")
+      print("peripheral: \(peripheral.uuid.uuidString) didDiscoverServices: \(String(describing: error))")
     for service in peripheral.services! {
       peripheral.discoverCharacteristics(nil, for: service)
     }
@@ -233,13 +238,13 @@ extension SwiftQuickBluePlugin: CBPeripheralDelegate {
       "characteristics": service.characteristics!.map { $0.uuid.uuidStr }
     ])
   }
-    
+
   public func peripheral(_ peripheral: CBPeripheral, didWriteValueFor characteristic: CBCharacteristic, error: Error?) {
-    print("peripheral:didWriteValueForCharacteristic \(characteristic.uuid.uuidStr) \(characteristic.value as? NSData) error: \(error)")
+      print("peripheral:didWriteValueForCharacteristic \(characteristic.uuid.uuidStr) \(String(describing: characteristic.value as? NSData)) error: \(String(describing: error))")
   }
-    
+
   public func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
-    print("peripheral:didUpdateValueForForCharacteristic \(characteristic.uuid) \(characteristic.value as! NSData) error: \(error)")
+      print("peripheral:didUpdateValueForForCharacteristic \(characteristic.uuid) \(characteristic.value as! NSData) error: \(String(describing: error))")
     self.messageConnector.sendMessage([
       "deviceId": peripheral.uuid.uuidString,
       "characteristicValue": [
