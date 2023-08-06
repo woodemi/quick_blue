@@ -49,12 +49,15 @@ class _PeripheralDetailPageState extends State<PeripheralDetailPage> {
     print('_handleConnectionChange $deviceId, $state');
   }
 
-  void _handleServiceDiscovery(String deviceId, String serviceId, List<String> characteristicIds) {
+  void _handleServiceDiscovery(
+      String deviceId, String serviceId, List<String> characteristicIds) {
     print('_handleServiceDiscovery $deviceId, $serviceId, $characteristicIds');
   }
 
-  void _handleValueChange(String deviceId, String characteristicId, Uint8List value) {
-    print('_handleValueChange $deviceId, $characteristicId, ${hex.encode(value)}');
+  void _handleValueChange(
+      String deviceId, String characteristicId, Uint8List value) {
+    print(
+        '_handleValueChange $deviceId, $characteristicId, ${hex.encode(value)}');
   }
 
   final serviceUUID = TextEditingController(text: WOODEMI_SERV__COMMAND);
@@ -74,13 +77,13 @@ class _PeripheralDetailPageState extends State<PeripheralDetailPage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: <Widget>[
-              RaisedButton(
+              ElevatedButton(
                 child: Text('connect'),
                 onPressed: () {
                   QuickBlue.connect(widget.deviceId);
                 },
               ),
-              RaisedButton(
+              ElevatedButton(
                 child: Text('disconnect'),
                 onPressed: () {
                   QuickBlue.disconnect(widget.deviceId);
@@ -91,7 +94,7 @@ class _PeripheralDetailPageState extends State<PeripheralDetailPage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: <Widget>[
-              RaisedButton(
+              ElevatedButton(
                 child: Text('discoverServices'),
                 onPressed: () {
                   QuickBlue.discoverServices(widget.deviceId);
@@ -99,12 +102,11 @@ class _PeripheralDetailPageState extends State<PeripheralDetailPage> {
               ),
             ],
           ),
-          RaisedButton(
+          ElevatedButton(
             child: Text('setNotifiable'),
             onPressed: () {
-              QuickBlue.setNotifiable(
-                  widget.deviceId, WOODEMI_SERV__COMMAND, WOODEMI_CHAR__COMMAND_RESPONSE,
-                  BleInputProperty.indication);
+              QuickBlue.setNotifiable(widget.deviceId, WOODEMI_SERV__COMMAND,
+                  WOODEMI_CHAR__COMMAND_RESPONSE, BleInputProperty.indication);
             },
           ),
           TextField(
@@ -125,28 +127,30 @@ class _PeripheralDetailPageState extends State<PeripheralDetailPage> {
               labelText: 'Binary code',
             ),
           ),
-          RaisedButton(
+          ElevatedButton(
             child: Text('send'),
             onPressed: () {
               var value = Uint8List.fromList(hex.decode(binaryCode.text));
               QuickBlue.writeValue(
-                  widget.deviceId, serviceUUID.text, characteristicUUID.text,
-                  value, BleOutputProperty.withResponse);
+                  widget.deviceId,
+                  serviceUUID.text,
+                  characteristicUUID.text,
+                  value,
+                  BleOutputProperty.withResponse);
             },
           ),
-          RaisedButton(
+          ElevatedButton(
             child: Text('readValue battery'),
             onPressed: () async {
               await QuickBlue.readValue(
-                  widget.deviceId,
-                  GSS_SERV__BATTERY,
-                  GSS_CHAR__BATTERY_LEVEL);
+                  widget.deviceId, GSS_SERV__BATTERY, GSS_CHAR__BATTERY_LEVEL);
             },
           ),
-          RaisedButton(
+          ElevatedButton(
             child: Text('requestMtu'),
             onPressed: () async {
-              var mtu = await QuickBlue.requestMtu(widget.deviceId, WOODEMI_MTU_WUART);
+              var mtu = await QuickBlue.requestMtu(
+                  widget.deviceId, WOODEMI_MTU_WUART);
               print('requestMtu $mtu');
             },
           ),
