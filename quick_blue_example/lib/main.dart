@@ -74,7 +74,9 @@ class _MyAppState extends State<MyApp> {
         ElevatedButton(
           child: Text('startScan'),
           onPressed: () {
-            QuickBlue.startScan();
+            QuickBlue.startScan(
+              forServices: ['86C3810E-F171-40D9-A117-26B300768CD6'],
+            );
           },
         ),
         ElevatedButton(
