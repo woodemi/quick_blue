@@ -36,7 +36,7 @@ flutter:
         package: com.example.quick_blue
         pluginClass: QuickBluePlugin
       ios:
-        pluginClass: QuickBluePlugin
+        default_package: quick_blue_macos
       macos:
         default_package: quick_blue_macos
       windows:

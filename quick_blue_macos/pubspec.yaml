@@ -6,7 +6,7 @@ repository: https://github.com/woodemi/quick_blue/tree/master/quick_blue_macos
 
 environment:
   sdk: ">=2.13.0 <3.0.0"
-  flutter: ">=2.2.0"
+  flutter: ">=3.7.0"
 
 dependencies:
   flutter:
@@ -29,6 +29,10 @@ flutter:
     platforms:
       macos:
         pluginClass: QuickBlueMacosPlugin
+        sharedDarwinSource: true
+      ios:
+        pluginClass: QuickBlueMacosPlugin
+        sharedDarwinSource: true
 
   # To add assets to your plugin package, add an assets section, like this:
   # assets:
