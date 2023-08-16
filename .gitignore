@@ -1,2 +1,6 @@
 # Flutter/Dart/Pub related
 pubspec.lock
+
+
+#macOS related
+.DS_Store

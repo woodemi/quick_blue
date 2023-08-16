@@ -22,18 +22,19 @@ extension CBPeripheral {
     }
   }
 
-  public func getCharacteristic(_ characteristic: String, of service: String) -> CBCharacteristic {
-    let s = self.services?.first {
-      $0.uuid.uuidStr == service || "0000\($0.uuid.uuidStr)-\(GSS_SUFFIX)" == service
-    }
-    let c = s?.characteristics?.first {
-      $0.uuid.uuidStr == characteristic || "0000\($0.uuid.uuidStr)-\(GSS_SUFFIX)" == characteristic
-    }
-    return c!
+  public func getCharacteristic(_ characteristic: String, of service: String) -> CBCharacteristic? {
+    return self.services?.first {
+			$0.uuid.uuidStr == service || "0000\($0.uuid.uuidStr)-\(GSS_SUFFIX)" == service
+		}?.characteristics?.first {
+			$0.uuid.uuidStr == characteristic || "0000\($0.uuid.uuidStr)-\(GSS_SUFFIX)" == characteristic
+		}
   }
 
   public func setNotifiable(_ bleInputProperty: String, for characteristic: String, of service: String) {
-    setNotifyValue(bleInputProperty != "disabled", for: getCharacteristic(characteristic, of: service))
+	let char = getCharacteristic(characteristic, of: service)
+	  if char != nil {
+		  setNotifyValue(bleInputProperty != "disabled", for: char!)
+	  }
   }
 }
 
@@ -62,92 +63,98 @@ public class SwiftQuickBluePlugin: NSObject, FlutterPlugin {
   }
 
   public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
-    switch call.method {
-    case "isBluetoothAvailable":
-      result(manager.state == .poweredOn)
-    case "startScan":
-      manager.scanForPeripherals(withServices: nil)
-      result(nil)
-    case "stopScan":
-      manager.stopScan()
-      result(nil)
-    case "connect":
-      let arguments = call.arguments as! Dictionary<String, Any>
-      let deviceId = arguments["deviceId"] as! String
-      guard let peripheral = discoveredPeripherals[deviceId] else {
-        result(FlutterError(code: "IllegalArgument", message: "Unknown deviceId:\(deviceId)", details: nil))
-        return
-      }
-      peripheral.delegate = self
-      manager.connect(peripheral)
-      result(nil)
-    case "disconnect":
-      let arguments = call.arguments as! Dictionary<String, Any>
-      let deviceId = arguments["deviceId"] as! String
-      guard let peripheral = discoveredPeripherals[deviceId] else {
-        result(FlutterError(code: "IllegalArgument", message: "Unknown deviceId:\(deviceId)", details: nil))
-        return
-      }
-      if (peripheral.state != .disconnected) {
-        manager.cancelPeripheralConnection(peripheral)
-      }
-      result(nil)
-    case "discoverServices":
-      let arguments = call.arguments as! Dictionary<String, Any>
-      let deviceId = arguments["deviceId"] as! String
-      guard let peripheral = discoveredPeripherals[deviceId] else {
-        result(FlutterError(code: "IllegalArgument", message: "Unknown deviceId:\(deviceId)", details: nil))
-        return
-      }
-      peripheral.discoverServices(nil)
-      result(nil)
-    case "setNotifiable":
-      let arguments = call.arguments as! Dictionary<String, Any>
-      let deviceId = arguments["deviceId"] as! String
-      let service = arguments["service"] as! String
-      let characteristic = arguments["characteristic"] as! String
-      let bleInputProperty = arguments["bleInputProperty"] as! String
-      guard let peripheral = discoveredPeripherals[deviceId] else {
-        result(FlutterError(code: "IllegalArgument", message: "Unknown deviceId:\(deviceId)", details: nil))
-        return
-      }
-      peripheral.setNotifiable(bleInputProperty, for: characteristic, of: service)
-      result(nil)
-    case "requestMtu":
-      let arguments = call.arguments as! Dictionary<String, Any>
-      let deviceId = arguments["deviceId"] as! String
-      guard let peripheral = discoveredPeripherals[deviceId] else {
-        result(FlutterError(code: "IllegalArgument", message: "Unknown deviceId:\(deviceId)", details: nil))
-        return
-      }
-      result(nil)
-      let mtu = peripheral.maximumWriteValueLength(for: .withoutResponse)
-      print("peripheral.maximumWriteValueLengthForType:CBCharacteristicWriteWithoutResponse \(mtu)")
-      messageConnector.sendMessage(["mtuConfig": mtu + GATT_HEADER_LENGTH])
-    case "readValue":
-      let arguments = call.arguments as! Dictionary<String, Any>
-      let deviceId = arguments["deviceId"] as! String
-      let service = arguments["service"] as! String
-      let characteristic = arguments["characteristic"] as! String
-      guard let peripheral = discoveredPeripherals[deviceId] else {
-        result(FlutterError(code: "IllegalArgument", message: "Unknown deviceId:\(deviceId)", details: nil))
-        return
-      }
-      peripheral.readValue(for: peripheral.getCharacteristic(characteristic, of: service))
-      result(nil)
-    case "writeValue":
-      let arguments = call.arguments as! Dictionary<String, Any>
-      let deviceId = arguments["deviceId"] as! String
-      let service = arguments["service"] as! String
-      let characteristic = arguments["characteristic"] as! String
-      let value = arguments["value"] as! FlutterStandardTypedData
-      let bleOutputProperty = arguments["bleOutputProperty"] as! String
-      guard let peripheral = discoveredPeripherals[deviceId] else {
-        result(FlutterError(code: "IllegalArgument", message: "Unknown deviceId:\(deviceId)", details: nil))
-        return
-      }
-      let type = bleOutputProperty == "withoutResponse" ? CBCharacteristicWriteType.withoutResponse : CBCharacteristicWriteType.withResponse
-      peripheral.writeValue(value.data, for: peripheral.getCharacteristic(characteristic, of: service), type: type)
+	  switch call.method {
+	  case "isBluetoothAvailable":
+		  result(manager.state == .poweredOn)
+	  case "startScan":
+		  manager.scanForPeripherals(withServices: nil)
+		  result(nil)
+	  case "stopScan":
+		  manager.stopScan()
+		  result(nil)
+	  case "connect":
+		  let arguments = call.arguments as! Dictionary<String, Any>
+		  let deviceId = arguments["deviceId"] as! String
+		  guard let peripheral = discoveredPeripherals[deviceId] else {
+			  result(FlutterError(code: "IllegalArgument", message: "Unknown deviceId:\(deviceId)", details: nil))
+			  return
+		  }
+		  peripheral.delegate = self
+		  manager.connect(peripheral)
+		  result(nil)
+	  case "disconnect":
+		  let arguments = call.arguments as! Dictionary<String, Any>
+		  let deviceId = arguments["deviceId"] as! String
+		  guard let peripheral = discoveredPeripherals[deviceId] else {
+			  result(FlutterError(code: "IllegalArgument", message: "Unknown deviceId:\(deviceId)", details: nil))
+			  return
+		  }
+		  if (peripheral.state != .disconnected) {
+			  manager.cancelPeripheralConnection(peripheral)
+		  }
+		  result(nil)
+	  case "discoverServices":
+		  let arguments = call.arguments as! Dictionary<String, Any>
+		  let deviceId = arguments["deviceId"] as! String
+		  guard let peripheral = discoveredPeripherals[deviceId] else {
+			  result(FlutterError(code: "IllegalArgument", message: "Unknown deviceId:\(deviceId)", details: nil))
+			  return
+		  }
+		  peripheral.discoverServices(nil)
+		  result(nil)
+	  case "setNotifiable":
+		  let arguments = call.arguments as! Dictionary<String, Any>
+		  let deviceId = arguments["deviceId"] as! String
+		  let service = arguments["service"] as! String
+		  let characteristic = arguments["characteristic"] as! String
+		  let bleInputProperty = arguments["bleInputProperty"] as! String
+		  guard let peripheral = discoveredPeripherals[deviceId] else {
+			  result(FlutterError(code: "IllegalArgument", message: "Unknown deviceId:\(deviceId)", details: nil))
+			  return
+		  }
+		  peripheral.setNotifiable(bleInputProperty, for: characteristic, of: service)
+		  result(nil)
+	  case "requestMtu":
+		  let arguments = call.arguments as! Dictionary<String, Any>
+		  let deviceId = arguments["deviceId"] as! String
+		  guard let peripheral = discoveredPeripherals[deviceId] else {
+			  result(FlutterError(code: "IllegalArgument", message: "Unknown deviceId:\(deviceId)", details: nil))
+			  return
+		  }
+		  result(nil)
+		  let mtu = peripheral.maximumWriteValueLength(for: .withoutResponse)
+		  print("peripheral.maximumWriteValueLengthForType:CBCharacteristicWriteWithoutResponse \(mtu)")
+		  messageConnector.sendMessage(["mtuConfig": mtu + GATT_HEADER_LENGTH])
+	  case "readValue":
+		  let arguments = call.arguments as! Dictionary<String, Any>
+		  let deviceId = arguments["deviceId"] as! String
+		  let service = arguments["service"] as! String
+		  let characteristic = arguments["characteristic"] as! String
+		  guard let peripheral = discoveredPeripherals[deviceId] else {
+			  result(FlutterError(code: "IllegalArgument", message: "Unknown deviceId:\(deviceId)", details: nil))
+			  return
+		  }
+		  let char = peripheral.getCharacteristic(characteristic, of: service)
+		  if char != nil {
+			  peripheral.readValue(for: char!)
+		  }
+		  result(nil)
+	  case "writeValue":
+		  let arguments = call.arguments as! Dictionary<String, Any>
+		  let deviceId = arguments["deviceId"] as! String
+		  let service = arguments["service"] as! String
+		  let characteristic = arguments["characteristic"] as! String
+		  let value = arguments["value"] as! FlutterStandardTypedData
+		  let bleOutputProperty = arguments["bleOutputProperty"] as! String
+		  guard let peripheral = discoveredPeripherals[deviceId] else {
+			  result(FlutterError(code: "IllegalArgument", message: "Unknown deviceId:\(deviceId)", details: nil))
+			  return
+		  }
+		  let type = bleOutputProperty == "withoutResponse" ? CBCharacteristicWriteType.withoutResponse : CBCharacteristicWriteType.withResponse
+		  let char = peripheral.getCharacteristic(characteristic, of: service)
+		  if char != nil {
+			  peripheral.writeValue(value.data, for: char!, type: type)
+		  }
       result(nil)
     default:
       result(FlutterMethodNotImplemented)
