@@ -18,6 +18,7 @@ dependencies:
   quick_blue_linux:
     path: "../quick_blue_linux"
   convert: ^3.0.0
+  equatable: ^2.0.5
 
 dev_dependencies:
   flutter_test:

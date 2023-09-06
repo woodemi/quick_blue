@@ -10,6 +10,7 @@ import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import androidx.annotation.NonNull
+import androidx.annotation.RequiresApi;
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.*
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
@@ -32,6 +33,7 @@ class QuickBluePlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamHand
   private lateinit var messageConnector: BasicMessageChannel<Any>
 
   override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
+    pluginBinding = flutterPluginBinding;
     method = MethodChannel(flutterPluginBinding.binaryMessenger, "quick_blue/method")
     eventScanResult = EventChannel(flutterPluginBinding.binaryMessenger, "quick_blue/event.scanResult")
     messageConnector = BasicMessageChannel(flutterPluginBinding.binaryMessenger, "quick_blue/message.connector", StandardMessageCodec.INSTANCE)
@@ -48,12 +50,14 @@ class QuickBluePlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamHand
     bluetoothManager.adapter.bluetoothLeScanner?.stopScan(scanCallback)
 
     eventScanResult.setStreamHandler(null)
-    method.setMethodCallHandler(null)
+    //method.setMethodCallHandler(null)
   }
 
   private lateinit var context: Context
   private lateinit var mainThreadHandler: Handler
   private lateinit var bluetoothManager: BluetoothManager
+  private lateinit var pluginBinding: FlutterPlugin.FlutterPluginBinding
+
 
   private val knownGatts = mutableListOf<BluetoothGatt>()
 
@@ -63,6 +67,9 @@ class QuickBluePlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamHand
 
   override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {
     when (call.method) {
+      "reinit" -> {
+        bluetoothManager = pluginBinding.applicationContext.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
+      }
       "isBluetoothAvailable" -> {
         result.success(bluetoothManager.adapter.isEnabled)
       }
@@ -255,6 +262,22 @@ class QuickBluePlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamHand
         ))
       }
     }
+
+    /*
+     * This override could potentially solve a bug where connect is called when the connection is already established
+     * but not detected by the app.
+	  @RequiresApi(value = Build.VERSION_CODES.O)
+    override fun onConnectionUpdated(gatt: BluetoothGatt?, interval: Int, latency: Int, timeout: Int, status: Int) {
+      Log.v(TAG, "onConnectionUpdated ${gatt!.device.address}, interval=$interval latency=$latency status=$status")
+      if (status == BluetoothGatt.GATT_SUCCESS) {
+        sendMessage(messageConnector, mapOf(
+          "deviceId" to gatt!.device!.address,
+          "ConnectionState" to "connected"
+        ))
+      }
+
+    }
+    */
 
     override fun onMtuChanged(gatt: BluetoothGatt?, mtu: Int, status: Int) {
       if (status == BluetoothGatt.GATT_SUCCESS) {

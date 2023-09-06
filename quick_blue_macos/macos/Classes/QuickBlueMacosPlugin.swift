@@ -22,14 +22,12 @@ extension CBPeripheral {
     }
   }
 
-  public func getCharacteristic(_ characteristic: String, of service: String) -> CBCharacteristic {
-    let s = self.services?.first {
-      $0.uuid.uuidStr == service || "0000\($0.uuid.uuidStr)-\(GSS_SUFFIX)" == service
+  public func getCharacteristic(_ characteristic: String, of service: String) -> CBCharacteristic? {
+    return self.services?.first {
+        $0.uuid.uuidStr == service || "0000\($0.uuid.uuidStr)-\(GSS_SUFFIX)" == service
+      }?.characteristics?.first {
+        $0.uuid.uuidStr == characteristic || "0000\($0.uuid.uuidStr)-\(GSS_SUFFIX)" == characteristic
     }
-    let c = s?.characteristics?.first {
-      $0.uuid.uuidStr == characteristic || "0000\($0.uuid.uuidStr)-\(GSS_SUFFIX)" == characteristic
-    }
-    return c!
   }
 
   public func setNotifiable(_ bleInputProperty: String, for characteristic: String, of service: String) {

@@ -1,4 +1,6 @@
-class BlueConnectionState {
+import 'package:equatable/equatable.dart';
+
+class BlueConnectionState extends Equatable {
   static const disconnected = BlueConnectionState._('disconnected');
   static const connected = BlueConnectionState._('connected');
 
@@ -14,6 +16,12 @@ class BlueConnectionState {
     }
     throw ArgumentError.value(value);
   }
+
+  @override
+  List<Object?> get props => [value];
+
+  @override
+  bool? get stringify => true;
 }
 
 class BleInputProperty {
