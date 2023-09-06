@@ -63,16 +63,14 @@ class QuickBlue {
 
   static void disconnect(String deviceId) => _platform.disconnect(deviceId);
 
-  static void setConnectionHandler(OnConnectionChanged? onConnectionChanged) {
-    _platform.onConnectionChanged = onConnectionChanged;
-  }
+  static void setConnectionHandler(OnConnectionChanged? onConnectionChanged) =>
+      _platform.onConnectionChanged = onConnectionChanged;
 
   static void discoverServices(String deviceId) =>
       _platform.discoverServices(deviceId);
 
-  static void setServiceHandler(OnServiceDiscovered? onServiceDiscovered) {
-    _platform.onServiceDiscovered = onServiceDiscovered;
-  }
+  static void setServiceHandler(OnServiceDiscovered? onServiceDiscovered) =>
+      _platform.onServiceDiscovered = onServiceDiscovered;
 
   static Future<void> setNotifiable(String deviceId, String service,
       String characteristic, BleInputProperty bleInputProperty) {
