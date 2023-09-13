@@ -122,7 +122,6 @@ public class SwiftQuickBluePlugin: NSObject, FlutterPlugin {
       }
       result(nil)
       let mtu = peripheral.maximumWriteValueLength(for: .withoutResponse)
-      print("peripheral.maximumWriteValueLengthForType:CBCharacteristicWriteWithoutResponse \(mtu)")
       messageConnector.sendMessage(["mtuConfig": mtu + GATT_HEADER_LENGTH])
     case "readValue":
       let arguments = call.arguments as! Dictionary<String, Any>
@@ -157,11 +156,10 @@ public class SwiftQuickBluePlugin: NSObject, FlutterPlugin {
 
 extension SwiftQuickBluePlugin: CBCentralManagerDelegate {
   public func centralManagerDidUpdateState(_ central: CBCentralManager) {
-    print("centralManagerDidUpdateState \(central.state.rawValue)")
+
   }
 
   public func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String: Any], rssi RSSI: NSNumber) {
-    print("centralManager:didDiscoverPeripheral \(peripheral.name) \(peripheral.uuid.uuidString)")
     discoveredPeripherals[peripheral.uuid.uuidString] = peripheral
 
     let manufacturerData = advertisementData[CBAdvertisementDataManufacturerDataKey] as? Data
@@ -174,7 +172,6 @@ extension SwiftQuickBluePlugin: CBCentralManagerDelegate {
   }
 
   public func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
-    print("centralManager:didConnect \(peripheral.uuid.uuidString)")
     messageConnector.sendMessage([
       "deviceId": peripheral.uuid.uuidString,
       "ConnectionState": "connected",
@@ -182,7 +179,6 @@ extension SwiftQuickBluePlugin: CBCentralManagerDelegate {
   }
   
   public func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
-    print("centralManager:didDisconnectPeripheral: \(peripheral.uuid.uuidString) error: \(error)")
     messageConnector.sendMessage([
       "deviceId": peripheral.uuid.uuidString,
       "ConnectionState": "disconnected",
@@ -195,7 +191,6 @@ extension SwiftQuickBluePlugin: FlutterStreamHandler {
     guard let args = arguments as? Dictionary<String, Any>, let name = args["name"] as? String else {
       return nil
     }
-    print("QuickBlueMacosPlugin onListenWithArguments：\(name)")
     if name == "scanResult" {
       scanResultSink = events
     }
@@ -206,7 +201,6 @@ extension SwiftQuickBluePlugin: FlutterStreamHandler {
     guard let args = arguments as? Dictionary<String, Any>, let name = args["name"] as? String else {
       return nil
     }
-    print("QuickBlueMacosPlugin onCancelWithArguments：\(name)")
     if name == "scanResult" {
       scanResultSink = nil
     }
@@ -216,7 +210,6 @@ extension SwiftQuickBluePlugin: FlutterStreamHandler {
 
 extension SwiftQuickBluePlugin: CBPeripheralDelegate {
   public func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) {
-    print("peripheral: \(peripheral.uuid.uuidString) didDiscoverServices: \(error)")
     for service in peripheral.services! {
       peripheral.discoverCharacteristics(nil, for: service)
     }
@@ -224,7 +217,6 @@ extension SwiftQuickBluePlugin: CBPeripheralDelegate {
     
   public func peripheral(_ peripheral: CBPeripheral, didDiscoverCharacteristicsFor service: CBService, error: Error?) {
     for characteristic in service.characteristics! {
-      print("peripheral:didDiscoverCharacteristicsForService (\(service.uuid.uuidStr), \(characteristic.uuid.uuidStr)")
     }
     self.messageConnector.sendMessage([
       "deviceId": peripheral.uuid.uuidString,
@@ -235,11 +227,10 @@ extension SwiftQuickBluePlugin: CBPeripheralDelegate {
   }
     
   public func peripheral(_ peripheral: CBPeripheral, didWriteValueFor characteristic: CBCharacteristic, error: Error?) {
-    print("peripheral:didWriteValueForCharacteristic \(characteristic.uuid.uuidStr) \(characteristic.value as? NSData) error: \(error)")
+    // TODO(cg): send this as a message.
   }
     
   public func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
-    print("peripheral:didUpdateValueForForCharacteristic \(characteristic.uuid) \(characteristic.value as! NSData) error: \(error)")
     self.messageConnector.sendMessage([
       "deviceId": peripheral.uuid.uuidString,
       "characteristicValue": [

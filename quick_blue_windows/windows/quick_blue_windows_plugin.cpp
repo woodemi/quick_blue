@@ -219,7 +219,6 @@ void QuickBlueWindowsPlugin::HandleMethodCall(
     const flutter::MethodCall<flutter::EncodableValue> &method_call,
     std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
   auto method_name = method_call.method_name();
-  OutputDebugString((L"HandleMethodCall " + winrt::to_hstring(method_name) + L"\n").c_str());
   if (method_name.compare("isBluetoothAvailable") == 0) {
     result->Success(EncodableValue(bluetoothRadio && bluetoothRadio.State() == RadioState::On));
   } else if (method_name.compare("startScan") == 0) {
@@ -340,7 +339,6 @@ void QuickBlueWindowsPlugin::BluetoothLEWatcher_Received(
 winrt::fire_and_forget QuickBlueWindowsPlugin::SendScanResultAsync(BluetoothLEAdvertisementReceivedEventArgs args) {
   auto device = co_await BluetoothLEDevice::FromBluetoothAddressAsync(args.BluetoothAddress());
   auto name = device ? device.Name() : args.Advertisement().LocalName();
-  OutputDebugString((L"Received BluetoothAddress:" + winrt::to_hstring(args.BluetoothAddress())
     + L", Name:" + name + L", LocalName:" + args.Advertisement().LocalName() + L"\n").c_str());
   if (scan_result_sink_) {
     scan_result_sink_->Success(EncodableMap{
@@ -384,7 +382,6 @@ winrt::fire_and_forget QuickBlueWindowsPlugin::ConnectAsync(uint64_t bluetoothAd
   auto device = co_await BluetoothLEDevice::FromBluetoothAddressAsync(bluetoothAddress);
   auto servicesResult = co_await device.GetGattServicesAsync();
   if (servicesResult.Status() != GattCommunicationStatus::Success) {
-    OutputDebugString((L"GetGattServicesAsync error: " + winrt::to_hstring((int32_t)servicesResult.Status()) + L"\n").c_str());
     message_connector_->Send(EncodableMap{
       {"deviceId", std::to_string(bluetoothAddress)},
       {"ConnectionState", "disconnected"},
@@ -403,7 +400,6 @@ winrt::fire_and_forget QuickBlueWindowsPlugin::ConnectAsync(uint64_t bluetoothAd
 }
 
 void QuickBlueWindowsPlugin::BluetoothLEDevice_ConnectionStatusChanged(BluetoothLEDevice sender, IInspectable args) {
-  OutputDebugString((L"ConnectionStatusChanged " + winrt::to_hstring((int32_t)sender.ConnectionStatus()) + L"\n").c_str());
   if (sender.ConnectionStatus() == BluetoothConnectionStatus::Disconnected) {
     CleanConnection(sender.BluetoothAddress());
     message_connector_->Send(EncodableMap{
@@ -455,7 +451,6 @@ winrt::fire_and_forget QuickBlueWindowsPlugin::DiscoverServicesAsync(BluetoothDe
 }
 
 winrt::fire_and_forget QuickBlueWindowsPlugin::RequestMtuAsync(BluetoothDeviceAgent& bluetoothDeviceAgent, uint64_t expectedMtu) {
-  OutputDebugString(L"RequestMtuAsync expectedMtu");
   auto gattSession = co_await GattSession::FromDeviceIdAsync(bluetoothDeviceAgent.device.BluetoothDeviceId());
   message_connector_->Send(EncodableMap{
     {"mtuConfig", (int64_t)gattSession.MaxPduSize()},
@@ -468,8 +463,6 @@ winrt::fire_and_forget QuickBlueWindowsPlugin::SetNotifiableAsync(BluetoothDevic
     : bleInputProperty == "indication" ? GattClientCharacteristicConfigurationDescriptorValue::Indicate
     : GattClientCharacteristicConfigurationDescriptorValue::None;
   auto writeDescriptorStatus = co_await gattCharacteristic.WriteClientCharacteristicConfigurationDescriptorAsync(descriptorValue);
-  if (writeDescriptorStatus != GattCommunicationStatus::Success)
-    OutputDebugString((L"WriteClientCharacteristicConfigurationDescriptorAsync " + winrt::to_hstring((int32_t)writeDescriptorStatus) + L"\n").c_str());
 
   if (bleInputProperty != "disabled") {
     bluetoothDeviceAgent.valueChangedTokens[characteristic] = gattCharacteristic.ValueChanged({ this, &QuickBlueWindowsPlugin::GattCharacteristic_ValueChanged });
@@ -482,7 +475,6 @@ winrt::fire_and_forget QuickBlueWindowsPlugin::ReadValueAsync(BluetoothDeviceAge
   auto gattCharacteristic = co_await bluetoothDeviceAgent.GetCharacteristicAsync(service, characteristic);
   auto readValueResult = co_await gattCharacteristic.ReadValueAsync();
   auto bytes = to_bytevc(readValueResult.Value());
-  OutputDebugString((L"ReadValueAsync " + winrt::to_hstring(characteristic) + L", " + winrt::to_hstring(to_hexstring(bytes)) + L"\n").c_str());
   message_connector_->Send(EncodableMap{
     {"deviceId", std::to_string(gattCharacteristic.Service().Device().BluetoothAddress())},
     {"characteristicValue", EncodableMap{
@@ -496,13 +488,11 @@ winrt::fire_and_forget QuickBlueWindowsPlugin::WriteValueAsync(BluetoothDeviceAg
   auto gattCharacteristic = co_await bluetoothDeviceAgent.GetCharacteristicAsync(service, characteristic);
   auto writeOption = bleOutputProperty.compare("withoutResponse") == 0 ? GattWriteOption::WriteWithoutResponse : GattWriteOption::WriteWithResponse;
   auto writeValueStatus = co_await gattCharacteristic.WriteValueAsync(from_bytevc(value), writeOption);
-  OutputDebugString((L"WriteValueAsync " + winrt::to_hstring(characteristic) + L", " + winrt::to_hstring(to_hexstring(value)) + L", " + winrt::to_hstring((int32_t)writeValueStatus) + L"\n").c_str());
 }
 
 void QuickBlueWindowsPlugin::GattCharacteristic_ValueChanged(GattCharacteristic sender, GattValueChangedEventArgs args) {
   auto uuid = to_uuidstr(sender.Uuid());
   auto bytes = to_bytevc(args.CharacteristicValue());
-  OutputDebugString((L"GattCharacteristic_ValueChanged " + winrt::to_hstring(uuid) + L", " + winrt::to_hstring(to_hexstring(bytes)) + L"\n").c_str());
   message_connector_->Send(EncodableMap{
     {"deviceId", std::to_string(sender.Service().Device().BluetoothAddress())},
     {"characteristicValue", EncodableMap{
