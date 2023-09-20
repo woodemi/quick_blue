@@ -215,6 +215,7 @@ class QuickBluePlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamHand
 
     override fun onServicesDiscovered(gatt: BluetoothGatt, status: Int) {
       if (status != BluetoothGatt.GATT_SUCCESS) return
+      gatt.services?.forEach { service ->
         sendMessage(messageConnector, mapOf(
           "deviceId" to gatt.device.address,
           "ServiceState" to "discovered",
@@ -222,6 +223,7 @@ class QuickBluePlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamHand
           "characteristics" to service.characteristics.map { it.uuid.toString() }
         ))
       }
+    }
 
     override fun onMtuChanged(gatt: BluetoothGatt?, mtu: Int, status: Int) {
       if (status == BluetoothGatt.GATT_SUCCESS) {
