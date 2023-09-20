@@ -222,7 +222,6 @@ class QuickBluePlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamHand
           "characteristics" to service.characteristics.map { it.uuid.toString() }
         ))
       }
-    }
 
     override fun onMtuChanged(gatt: BluetoothGatt?, mtu: Int, status: Int) {
       if (status == BluetoothGatt.GATT_SUCCESS) {
