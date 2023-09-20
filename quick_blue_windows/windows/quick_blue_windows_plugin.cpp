@@ -339,7 +339,6 @@ void QuickBlueWindowsPlugin::BluetoothLEWatcher_Received(
 winrt::fire_and_forget QuickBlueWindowsPlugin::SendScanResultAsync(BluetoothLEAdvertisementReceivedEventArgs args) {
   auto device = co_await BluetoothLEDevice::FromBluetoothAddressAsync(args.BluetoothAddress());
   auto name = device ? device.Name() : args.Advertisement().LocalName();
-    + L", Name:" + name + L", LocalName:" + args.Advertisement().LocalName() + L"\n").c_str());
   if (scan_result_sink_) {
     scan_result_sink_->Success(EncodableMap{
       {"name", winrt::to_string(name)},
