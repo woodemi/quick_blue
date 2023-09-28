@@ -145,4 +145,35 @@ class MethodChannelQuickBlue extends QuickBluePlatform {
     });
     return await _mtuConfigController.stream.first;
   }
+
+  @override
+  Future<BleL2capSocket> openL2cap(String deviceId, String psm) async {
+    await _method.invokeMethod('openL2cap', {
+      'deviceId': deviceId,
+      'psm': psm,
+    });
+
+    return BleL2capSocket(
+      sink: _L2capSink(),
+      stream: _l2cap_channel.receiveBroadcastStream().cast(),
+    );
+  }
+}
+
+class _L2capSink implements EventSink<Uint8List> {
+  @override
+  void add(Uint8List event) {
+    // TODO: implement add
+  }
+
+  @override
+  void addError(Object error, [StackTrace? stackTrace]) {
+    // TODO: implement addError
+  }
+
+  @override
+  Future close() {
+    // TODO: implement close
+    throw UnimplementedError();
+  }
 }

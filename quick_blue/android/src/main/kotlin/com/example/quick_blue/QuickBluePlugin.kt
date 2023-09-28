@@ -30,11 +30,15 @@ class QuickBluePlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamHand
   private lateinit var method : MethodChannel
   private lateinit var eventScanResult : EventChannel
   private lateinit var messageConnector: BasicMessageChannel<Any>
+  private lateinit var l2CapOut: EventChannel
+  private lateinit var l2CapIn: EventChannel
 
   override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
     method = MethodChannel(flutterPluginBinding.binaryMessenger, "quick_blue/method")
     eventScanResult = EventChannel(flutterPluginBinding.binaryMessenger, "quick_blue/event.scanResult")
     messageConnector = BasicMessageChannel(flutterPluginBinding.binaryMessenger, "quick_blue/message.connector", StandardMessageCodec.INSTANCE)
+    l2CapIn = EventChannel(flutterPluginBinding.binaryMessenger, "quick_blue/event.scanResult")
+    l2CapOut = EventChannel(flutterPluginBinding.binaryMessenger, "quick_blue/event.scanResult")
 
     method.setMethodCallHandler(this)
     eventScanResult.setStreamHandler(this)
@@ -54,6 +58,7 @@ class QuickBluePlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamHand
   private lateinit var context: Context
   private lateinit var mainThreadHandler: Handler
   private lateinit var bluetoothManager: BluetoothManager
+  private lateinit var l2capHandler: Handler
 
   private val knownGatts = mutableListOf<BluetoothGatt>()
 
@@ -152,6 +157,15 @@ class QuickBluePlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamHand
           result.success(null)
         else
           result.error("Characteristic unavailable", null, null)
+      }
+      "openL2cap" -> {
+        val deviceId = call.argument<String>("deviceId")!!
+        val psm = call.argument<String>("psm")!!
+        val gatt = knownGatts.find { it.device.address == deviceId }
+          ?: return result.error("IllegalArgument", "Unknown deviceId: $deviceId", null)
+        val socket = gatt.device.createL2capChannel(psm)
+        socket.connect()
+
       }
       else -> {
         result.notImplemented()
