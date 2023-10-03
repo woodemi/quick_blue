@@ -3,7 +3,6 @@ import 'dart:typed_data';
 
 import 'package:bluez/bluez.dart';
 import 'package:collection/collection.dart';
-import 'package:logging/logging.dart';
 import 'package:quick_blue_platform_interface/quick_blue_platform_interface.dart';
 
 class QuickBlueLinux extends QuickBluePlatform {
@@ -17,7 +16,8 @@ class QuickBlueLinux extends QuickBluePlatform {
     if (!isInitialized) {
       await _client.connect();
 
-      _activeAdapter ??= _client.adapters.firstWhereOrNull((adapter) => adapter.powered);
+      _activeAdapter ??=
+          _client.adapters.firstWhereOrNull((adapter) => adapter.powered);
 
       _client.deviceAdded.listen(_onDeviceAdd);
 
@@ -25,44 +25,31 @@ class QuickBlueLinux extends QuickBluePlatform {
     }
   }
 
-  QuickLogger? _logger;
-
-  @override
-  void setLogger(QuickLogger logger) {
-    _logger = logger;
-  }
-
-  void _log(String message, {Level logLevel = Level.INFO}) {
-    _logger?.log(logLevel, message);
-  }
-
   @override
   Future<bool> isBluetoothAvailable() async {
     await _ensureInitialized();
-    _log('isBluetoothAvailable invoke success');
 
     return _activeAdapter != null;
   }
 
   @override
-  void startScan() async {
+  Future<void> startScan() async {
     await _ensureInitialized();
-    _log('startScan invoke success');
 
     _activeAdapter!.startDiscovery();
     _client.devices.forEach(_onDeviceAdd);
   }
 
   @override
-  void stopScan() async {
+  Future<void> stopScan() async {
     await _ensureInitialized();
-    _log('stopScan invoke success');
 
     _activeAdapter!.stopDiscovery();
   }
 
   // FIXME Close
-  final StreamController<dynamic> _scanResultController = StreamController.broadcast();
+  final StreamController<dynamic> _scanResultController =
+      StreamController.broadcast();
 
   @override
   Stream get scanResultStream => _scanResultController.stream;
@@ -77,37 +64,44 @@ class QuickBlueLinux extends QuickBluePlatform {
   }
 
   @override
-  void connect(String deviceId) {
+  Future<void> connect(String deviceId) {
     // TODO: implement connect
     throw UnimplementedError();
   }
 
   @override
-  void disconnect(String deviceId) {
+  Future<void> disconnect(String deviceId) {
     // TODO: implement disconnect
     throw UnimplementedError();
   }
 
   @override
-  void discoverServices(String deviceId) {
+  Future<void> discoverServices(String deviceId) {
     // TODO: implement discoverServices
     throw UnimplementedError();
   }
 
   @override
-  Future<void> setNotifiable(String deviceId, String service, String characteristic, BleInputProperty bleInputProperty) {
+  Future<void> setNotifiable(String deviceId, String service,
+      String characteristic, BleInputProperty bleInputProperty) {
     // TODO: implement setNotifiable
     throw UnimplementedError();
   }
 
   @override
-  Future<void> readValue(String deviceId, String service, String characteristic) {
+  Future<void> readValue(
+      String deviceId, String service, String characteristic) {
     // TODO: implement readValue
     throw UnimplementedError();
   }
 
   @override
-  Future<void> writeValue(String deviceId, String service, String characteristic, Uint8List value, BleOutputProperty bleOutputProperty) {
+  Future<void> writeValue(
+      String deviceId,
+      String service,
+      String characteristic,
+      Uint8List value,
+      BleOutputProperty bleOutputProperty) {
     // TODO: implement writeValue
     throw UnimplementedError();
   }
