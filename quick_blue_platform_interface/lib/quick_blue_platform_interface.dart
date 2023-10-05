@@ -12,6 +12,7 @@ export 'models.dart';
 typedef OnConnectionChanged = void Function(
   String deviceId,
   BlueConnectionState state,
+  BleStatus status,
 );
 
 typedef OnServiceDiscovered = void Function(

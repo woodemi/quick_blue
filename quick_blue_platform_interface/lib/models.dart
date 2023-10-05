@@ -16,6 +16,8 @@ class BlueConnectionState {
   }
 }
 
+enum BleStatus { success, failure }
+
 class BleInputProperty {
   static const disabled = BleInputProperty._('disabled');
   static const notification = BleInputProperty._('notification');

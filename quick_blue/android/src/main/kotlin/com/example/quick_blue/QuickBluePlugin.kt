@@ -199,18 +199,29 @@ class QuickBluePlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamHand
 
   private val gattCallback = object : BluetoothGattCallback() {
     override fun onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int) {
-      if (newState == BluetoothGatt.STATE_CONNECTED && status == BluetoothGatt.GATT_SUCCESS) {
-        sendMessage(messageConnector, mapOf(
-          "deviceId" to gatt.device.address,
-          "ConnectionState" to "connected"
-        ))
-      } else {
-        cleanConnection(gatt)
-        sendMessage(messageConnector, mapOf(
-          "deviceId" to gatt.device.address,
-          "ConnectionState" to "disconnected"
-        ))
+      val gattStatus = when(status) {
+        BluetoothGatt.GATT_SUCCESS -> "success"
+        BluetoothGatt.GATT_FAILURE -> "failure"
+        else -> "failure"
       }
+      val connectionState = when(newState) {
+        BluetoothGatt.STATE_CONNECTED -> "connected"
+        BluetoothGatt.STATE_CONNECTING -> "connecting"
+        BluetoothGatt.STATE_DISCONNECTED -> "disconnected"
+        BluetoothGatt.STATE_DISCONNECTING -> "disconnecting"
+        else -> "unknown"
+      }
+
+      // Clear out the connection if the device disconnected, or something bad happened.
+      if (newState == BluetoothGatt.STATE_DISCONNECTED || status != BluetoothGatt.GATT_SUCCESS) {
+        cleanConnection(gatt)
+      }
+
+      sendMessage(messageConnector, mapOf(
+        "deviceId" to gatt.device.address,
+        "ConnectionState" to connectionState,
+        "status" to gattStatus
+      ))
     }
 
     override fun onServicesDiscovered(gatt: BluetoothGatt, status: Int) {

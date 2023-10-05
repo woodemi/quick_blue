@@ -170,19 +170,22 @@ extension QuickBlueMacosPlugin: CBCentralManagerDelegate {
     ])
   }
 
-  public func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
-    messageConnector.sendMessage([
-      "deviceId": peripheral.uuid.uuidString,
-      "ConnectionState": "connected",
-    ])
-  }
-    
-  public func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
-    messageConnector.sendMessage([
-      "deviceId": peripheral.uuid.uuidString,
-      "ConnectionState": "disconnected",
-    ])
-  }
+    public func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
+      messageConnector.sendMessage([
+        "deviceId": peripheral.uuid.uuidString,
+        "ConnectionState": "connected",
+        "status": "success",
+      ])
+    }
+
+    public func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
+        
+      messageConnector.sendMessage([
+        "deviceId": peripheral.uuid.uuidString,
+        "ConnectionState": "disconnected",
+        "status": error == nil ? "success" : "failure",
+      ])
+    }
 }
 
 extension QuickBlueMacosPlugin: FlutterStreamHandler {
