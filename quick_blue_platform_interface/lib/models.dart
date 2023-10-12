@@ -49,3 +49,28 @@ class BleL2capSocket {
   final EventSink<Uint8List> sink;
   final Stream<Uint8List> stream;
 }
+
+sealed class BleL2CapSocketEvent {
+  BleL2CapSocketEvent({
+    required this.deviceId,
+  });
+
+  final String deviceId;
+}
+
+class BleL2CapSocketEventOpened extends BleL2CapSocketEvent {
+  BleL2CapSocketEventOpened({required super.deviceId});
+}
+
+class BleL2CapSocketEventData extends BleL2CapSocketEvent {
+  BleL2CapSocketEventData({
+    required super.deviceId,
+    required this.data,
+  });
+
+  final Uint8List data;
+}
+
+class BleL2CapSocketEventClosed extends BleL2CapSocketEvent {
+  BleL2CapSocketEventClosed({required super.deviceId});
+}

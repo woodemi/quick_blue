@@ -14,9 +14,8 @@ class MethodChannelQuickBlue extends QuickBluePlatform {
     StandardMessageCodec(),
   );
 
-  static const _l2cap_channel_stream = const EventChannel(
-    'quick_blue/l2cap_stream',
-  );
+  static final _l2CapEventController =
+      StreamController<BleL2CapSocketEvent>.broadcast();
 
   MethodChannelQuickBlue() {
     _message_connector.setMessageHandler(_handleConnectorMessage);
@@ -93,6 +92,19 @@ class MethodChannelQuickBlue extends QuickBluePlatform {
       onValueChanged?.call(deviceId, characteristic, value);
     } else if (message['mtuConfig'] != null) {
       _mtuConfigController.add(message['mtuConfig']);
+    } else if (message['l2capStatus'] != null) {
+      final String deviceId = message['deviceId'];
+      final String l2CapStatus = message['l2capStatus'];
+      final Uint8List? data = message['data'];
+
+      final event = switch (l2CapStatus) {
+        'opened' => BleL2CapSocketEventOpened(deviceId: deviceId),
+        'closed' => BleL2CapSocketEventClosed(deviceId: deviceId),
+        'stream' => BleL2CapSocketEventData(deviceId: deviceId, data: data!),
+        _ => throw 'Unknown L2Cap event $l2CapStatus',
+      };
+
+      _l2CapEventController.add(event);
     }
   }
 
@@ -165,7 +177,10 @@ class MethodChannelQuickBlue extends QuickBluePlatform {
         channel: _method,
         deviceId: deviceId,
       ),
-      stream: _l2cap_channel_stream.receiveBroadcastStream().cast(),
+      stream: _l2CapEventController.stream
+          .where((event) => event.deviceId == deviceId)
+          .where((event) => event is BleL2CapSocketEventData)
+          .map((event) => (event as BleL2CapSocketEventData).data),
     );
   }
 }
