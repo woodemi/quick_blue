@@ -6,10 +6,17 @@ import 'quick_blue_platform_interface.dart';
 
 class MethodChannelQuickBlue extends QuickBluePlatform {
   static const MethodChannel _method = const MethodChannel('quick_blue/method');
-  static const _event_scanResult =
-      const EventChannel('quick_blue/event.scanResult');
+  static const _event_scanResult = const EventChannel(
+    'quick_blue/event.scanResult',
+  );
   static const _message_connector = const BasicMessageChannel(
-      'quick_blue/message.connector', StandardMessageCodec());
+    'quick_blue/message.connector',
+    StandardMessageCodec(),
+  );
+
+  static const _l2cap_channel_stream = const EventChannel(
+    'quick_blue/l2cap_stream',
+  );
 
   MethodChannelQuickBlue() {
     _message_connector.setMessageHandler(_handleConnectorMessage);
@@ -154,26 +161,35 @@ class MethodChannelQuickBlue extends QuickBluePlatform {
     });
 
     return BleL2capSocket(
-      sink: _L2capSink(),
-      stream: _l2cap_channel.receiveBroadcastStream().cast(),
+      sink: _L2capSink(
+        channel: _method,
+        deviceId: deviceId,
+      ),
+      stream: _l2cap_channel_stream.receiveBroadcastStream().cast(),
     );
   }
 }
 
 class _L2capSink implements EventSink<Uint8List> {
+  _L2capSink({
+    required this.channel,
+    required this.deviceId,
+  });
+
+  final MethodChannel channel;
+  final String deviceId;
+
   @override
   void add(Uint8List event) {
-    // TODO: implement add
+    channel.invokeMethod('l2cap', {
+      'deviceId': deviceId,
+      'data': event,
+    });
   }
 
   @override
-  void addError(Object error, [StackTrace? stackTrace]) {
-    // TODO: implement addError
-  }
+  void addError(Object error, [StackTrace? stackTrace]) {}
 
   @override
-  Future close() {
-    // TODO: implement close
-    throw UnimplementedError();
-  }
+  Future close() async {}
 }
