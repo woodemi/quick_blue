@@ -107,6 +107,6 @@ class QuickBlue {
   static Future<int> requestMtu(String deviceId, int expectedMtu) =>
       _platform.requestMtu(deviceId, expectedMtu);
 
-  static Future<BleL2capSocket> openL2cap(String deviceId, String psm) =>
+  static Future<BleL2capSocket> openL2cap(String deviceId, int psm) =>
       _platform.openL2cap(deviceId, psm);
 }

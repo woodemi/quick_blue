@@ -166,7 +166,7 @@ class MethodChannelQuickBlue extends QuickBluePlatform {
   }
 
   @override
-  Future<BleL2capSocket> openL2cap(String deviceId, String psm) async {
+  Future<BleL2capSocket> openL2cap(String deviceId, int psm) async {
     await _method.invokeMethod('openL2cap', {
       'deviceId': deviceId,
       'psm': psm,

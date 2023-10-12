@@ -84,5 +84,5 @@ abstract class QuickBluePlatform extends PlatformInterface {
 
   Future<int> requestMtu(String deviceId, int expectedMtu);
 
-  Future<BleL2capSocket> openL2cap(String deviceId, String psm);
+  Future<BleL2capSocket> openL2cap(String deviceId, int psm);
 }
