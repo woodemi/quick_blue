@@ -42,6 +42,16 @@ dev_dependencies:
   # rules and activating additional ones.
   flutter_lints: ^2.0.0
 
+dependency_overrides:
+  quick_blue_macos:
+    path: ../../quick_blue_macos
+  quick_blue_linux:
+    path: ../../quick_blue_linux
+  quick_blue_platform_interface:
+    path: ../../quick_blue_platform_interface
+  quick_blue_windows:
+    path: ../../quick_blue_windows
+
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 

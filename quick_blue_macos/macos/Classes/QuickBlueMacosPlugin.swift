@@ -51,6 +51,7 @@ public class QuickBlueMacosPlugin: NSObject, FlutterPlugin {
 
   private var manager: CBCentralManager!
   private var discoveredPeripherals: Dictionary<String, CBPeripheral>!
+  private var streamDelegates: Dictionary<String, L2CapStreamDelegate>!
 
   private var scanResultSink: FlutterEventSink?
   private var messageConnector: FlutterBasicMessageChannel!
@@ -59,6 +60,7 @@ public class QuickBlueMacosPlugin: NSObject, FlutterPlugin {
     super.init()
     manager = CBCentralManager(delegate: self, queue: nil)
     discoveredPeripherals = Dictionary()
+    streamDelegates = Dictionary()
   }
 
   public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
@@ -147,6 +149,16 @@ public class QuickBlueMacosPlugin: NSObject, FlutterPlugin {
       }
       let type = bleOutputProperty == "withoutResponse" ? CBCharacteristicWriteType.withoutResponse : CBCharacteristicWriteType.withResponse
       peripheral.writeValue(value.data, for: peripheral.getCharacteristic(characteristic, of: service), type: type)
+      result(nil)
+    case "openL2cap":
+      let arguments = call.arguments as! Dictionary<String, Any>
+      let deviceId = arguments["deviceId"] as! String
+      let psm = arguments["psm"] as! CBL2CAPPSM
+      guard let peripheral = discoveredPeripherals[deviceId] else {
+        result(FlutterError(code: "IllegalArgument", message: "Unknown deviceId:\(deviceId)", details: nil))
+        return
+      }
+      peripheral.openL2CAPChannel(psm)
       result(nil)
     default:
       result(FlutterMethodNotImplemented)
@@ -239,4 +251,141 @@ extension QuickBlueMacosPlugin: CBPeripheralDelegate {
       ]
     ])
   }
+
+  public func peripheral(_ peripheral: CBPeripheral, didOpen channel: CBL2CAPChannel?, error: Error?) {
+    NSLog("didOpenL2CAPChannel \(String(describing: channel)) error: \(String(describing: error))")
+
+    guard let channel = channel else {
+        return
+    }
+    
+    let streamDelegate = L2CapStreamDelegate(channel: channel, openedCallback: {
+        self.messageConnector.sendMessage([
+          "deviceId": peripheral.uuid.uuidString,
+          "l2capStatus": "opened",
+        ])
+    }, streamCallback: {
+        data in
+        self.messageConnector.sendMessage([
+          "deviceId": peripheral.uuid.uuidString,
+          "l2capStatus": "stream",
+          "data": data,
+        ])
+    }, closedCallback: {
+        self.messageConnector.sendMessage([
+          "deviceId": peripheral.uuid.uuidString,
+          "l2capStatus": "closed",
+        ])
+    })
+    streamDelegates[peripheral.uuid.uuidString] = streamDelegate
+  }
+}
+
+class L2CapStreamDelegate: NSObject, StreamDelegate {
+    var channel: CBL2CAPChannel?
+    var inputStream: InputStream?
+    var outputStream: OutputStream?
+    
+    var openedCallback: () -> ()?
+    var streamCallback: (Data) -> ()?
+    var closedCallback: () -> ()?
+    
+    var streamOpenCount = 0
+    var dataToSend = Data()
+    var dataReceived = Data()
+
+    init(channel: CBL2CAPChannel, openedCallback: @escaping () -> (), streamCallback: @escaping (Data) -> (), closedCallback: @escaping () -> ()) {
+        self.channel = channel
+        self.openedCallback = openedCallback
+        self.streamCallback = streamCallback
+        self.closedCallback = closedCallback
+        
+        super.init()
+        
+        self.inputStream = channel.inputStream
+        self.inputStream!.delegate = self
+        self.inputStream!.schedule(in: .main, forMode: .default)
+        self.inputStream!.open()
+        
+        self.outputStream = channel.outputStream
+        self.outputStream!.delegate = self
+        self.outputStream!.schedule(in: .main, forMode: .default)
+        self.outputStream!.open()
+    }
+
+    func l2capCheckSend() {
+        while dataToSend.count > 0 {
+            if !outputStream!.hasSpaceAvailable {
+                break;
+            }
+            let n = dataToSend.withUnsafeBytes { outputStream!.write(($0.baseAddress?.assumingMemoryBound(to: UInt8.self))!, maxLength: dataToSend.count) }
+            if n > 0 {
+                dataToSend.removeSubrange(0 ..< n)
+            } else {
+                NSLog("L2CAP - no data sent")
+            }
+//            NSLog("L2CAP send \(n) bytes")
+        }
+    }
+
+    func checkSend() {
+        self.l2capCheckSend()
+    }
+    
+    @MainActor
+    func streamOpenCompleted() {
+        self.openedCallback()
+    }
+
+    @MainActor
+    func streamEndEncountered() {
+        self.closedCallback()
+    }
+
+    @MainActor
+    func streamRecevied(data: Data) {
+        self.streamCallback(data)
+    }
+
+    @MainActor
+    func streamHasSpaceAvailable() {
+        self.checkSend()
+    }
+    
+    @MainActor
+    func stream(_ aStream: Stream, handle eventCode: Stream.Event) {
+        switch (eventCode) {
+            case .openCompleted:
+//                NSLog("NSStreamEventOpenCompleted")
+                self.streamOpenCount += 1
+                if self.streamOpenCount == 2 {
+                    NSLog("NSStreamEventOpenCompleted 2")
+                    self.streamOpenCompleted()
+                }
+            case .hasBytesAvailable:
+//                NSLog("NSStreamEventHasBytesAvailable")
+                let bufferSize = 8192
+                let buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: bufferSize)
+                while (self.inputStream!.hasBytesAvailable) {
+                    let n = self.inputStream!.read(buffer, maxLength: bufferSize)
+//                    NSLog("L2CAP read \(n)")
+                    if n == 0 {
+                        break
+                    }
+                    let data = Data(bytes: buffer, count: n)
+                    self.streamRecevied(data: data)
+                }
+                buffer.deallocate()
+            case .hasSpaceAvailable:
+//                NSLog("NSStreamEventHasSpaceAvailable")
+                self.streamHasSpaceAvailable()
+            case .errorOccurred:
+                NSLog("NSStreamEventErrorOccurred")
+            case .endEncountered:
+                NSLog("NSStreamEventEndEncountered")
+                self.streamEndEncountered()
+        default:
+            NSLog("unknown stream event")
+        }
+    }
 }
