@@ -6,10 +6,16 @@ import 'quick_blue_platform_interface.dart';
 
 class MethodChannelQuickBlue extends QuickBluePlatform {
   static const MethodChannel _method = const MethodChannel('quick_blue/method');
-  static const _event_scanResult =
-      const EventChannel('quick_blue/event.scanResult');
+  static const _event_scanResult = const EventChannel(
+    'quick_blue/event.scanResult',
+  );
   static const _message_connector = const BasicMessageChannel(
-      'quick_blue/message.connector', StandardMessageCodec());
+    'quick_blue/message.connector',
+    StandardMessageCodec(),
+  );
+
+  static final _l2CapEventController =
+      StreamController<BleL2CapSocketEvent>.broadcast();
 
   MethodChannelQuickBlue() {
     _message_connector.setMessageHandler(_handleConnectorMessage);
@@ -86,6 +92,19 @@ class MethodChannelQuickBlue extends QuickBluePlatform {
       onValueChanged?.call(deviceId, characteristic, value);
     } else if (message['mtuConfig'] != null) {
       _mtuConfigController.add(message['mtuConfig']);
+    } else if (message['l2capStatus'] != null) {
+      final String deviceId = message['deviceId'];
+      final String l2CapStatus = message['l2capStatus'];
+      final Uint8List? data = message['data'];
+
+      final event = switch (l2CapStatus) {
+        'opened' => BleL2CapSocketEventOpened(deviceId: deviceId),
+        'closed' => BleL2CapSocketEventClosed(deviceId: deviceId),
+        'stream' => BleL2CapSocketEventData(deviceId: deviceId, data: data!),
+        _ => throw 'Unknown L2Cap event $l2CapStatus',
+      };
+
+      _l2CapEventController.add(event);
     }
   }
 
@@ -145,4 +164,53 @@ class MethodChannelQuickBlue extends QuickBluePlatform {
     });
     return await _mtuConfigController.stream.first;
   }
+
+  @override
+  Future<BleL2capSocket> openL2cap(String deviceId, int psm) async {
+    await _method.invokeMethod('openL2cap', {
+      'deviceId': deviceId,
+      'psm': psm,
+    });
+
+    // Wait for the open status.
+    await _l2CapEventController.stream
+        .where((event) => event.deviceId == deviceId)
+        .firstWhere((event) => event is BleL2CapSocketEventOpened)
+        .timeout(const Duration(seconds: 5));
+
+    return BleL2capSocket(
+      sink: _L2capSink(
+        channel: _method,
+        deviceId: deviceId,
+      ),
+      stream: _l2CapEventController.stream
+          .where((event) => event.deviceId == deviceId)
+          .where((event) => event is BleL2CapSocketEventData)
+          .map((event) => (event as BleL2CapSocketEventData).data),
+    );
+  }
+}
+
+class _L2capSink implements EventSink<Uint8List> {
+  _L2capSink({
+    required this.channel,
+    required this.deviceId,
+  });
+
+  final MethodChannel channel;
+  final String deviceId;
+
+  @override
+  void add(Uint8List event) {
+    channel.invokeMethod('_l2cap_write', {
+      'deviceId': deviceId,
+      'data': event,
+    });
+  }
+
+  @override
+  void addError(Object error, [StackTrace? stackTrace]) {}
+
+  @override
+  Future close() async {}
 }

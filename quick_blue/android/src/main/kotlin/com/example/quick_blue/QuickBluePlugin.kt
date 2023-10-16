@@ -7,6 +7,7 @@ import android.bluetooth.le.ScanResult
 import android.content.Context
 import android.os.Build
 import android.os.Handler
+import android.os.HandlerThread
 import android.os.Looper
 import android.util.Log
 import androidx.annotation.NonNull
@@ -54,8 +55,10 @@ class QuickBluePlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamHand
   private lateinit var context: Context
   private lateinit var mainThreadHandler: Handler
   private lateinit var bluetoothManager: BluetoothManager
+  private lateinit var l2capHandler: Handler
 
   private val knownGatts = mutableListOf<BluetoothGatt>()
+  private val streamDelegates = mutableMapOf<String, L2CapStreamDelegate>()
 
   private fun sendMessage(messageChannel: BasicMessageChannel<Any>, message: Map<String, Any>) {
     mainThreadHandler.post { messageChannel.send(message) }
@@ -153,6 +156,49 @@ class QuickBluePlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamHand
         else
           result.error("Characteristic unavailable", null, null)
       }
+      "openL2cap" -> {
+        val deviceId = call.argument<String>("deviceId")!!
+        val psm = call.argument<Int>("psm")!!
+        val gatt = knownGatts.find { it.device.address == deviceId }
+          ?: return result.error("IllegalArgument", "Unknown deviceId: $deviceId", null)
+        val socket = gatt.device.createInsecureL2capChannel(psm)
+        val delegate = L2CapStreamDelegate(socket, openedCallback = {
+          sendMessage(messageConnector, mapOf(
+                  "deviceId" to gatt.device.address,
+                  "l2capStatus" to "opened"
+          ))
+        }, closedCallback =  {
+          sendMessage(messageConnector, mapOf(
+                  "deviceId" to gatt.device.address,
+                  "l2capStatus" to "closed"
+          ))
+        }, streamCallback =  {
+          sendMessage(messageConnector, mapOf(
+                  "deviceId" to gatt.device.address,
+                  "l2capStatus" to "stream",
+                  "data" to it
+          ))
+        })
+
+        streamDelegates[gatt.device.address] = delegate
+        result.success(null)
+      }
+      "closeL2cap" -> {
+        val deviceId = call.argument<String>("deviceId")!!
+        val delegate = streamDelegates[deviceId]
+                ?: return result.error("IllegalArgument", "No stream delegate for deviceId: $deviceId", null)
+        delegate.close()
+        streamDelegates.remove(deviceId)
+        result.success(null)
+      }
+      "_l2cap_write" -> {
+        val deviceId = call.argument<String>("deviceId")!!
+        val data = call.argument<ByteArray>("data")!!
+        val delegate = streamDelegates[deviceId]
+                ?: return result.error("IllegalArgument", "No stream delegate for deviceId: $deviceId", null)
+        delegate.write(data)
+        result.success(null)
+      }
       else -> {
         result.notImplemented()
       }
@@ -161,6 +207,11 @@ class QuickBluePlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamHand
 
   private fun cleanConnection(gatt: BluetoothGatt) {
     knownGatts.remove(gatt)
+    val delegate = streamDelegates[gatt.device.address]
+    if (delegate != null) {
+      delegate.close()
+      streamDelegates.remove(gatt.device.address)
+    }
     gatt.disconnect()
   }
 
@@ -266,6 +317,64 @@ class QuickBluePlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamHand
           "value" to characteristic.value
         )
       ))
+    }
+  }
+}
+
+class L2CapStreamDelegate(private val socket: BluetoothSocket, val openedCallback: () -> Unit,
+                          val closedCallback: () -> Unit, val streamCallback: (ByteArray) -> Unit) {
+  private val handlerThread = HandlerThread("L2CapThread")
+  private val handler: Handler
+
+  private val handlerReadThread = HandlerThread("L2CapReadThread")
+  private val handlerRead: Handler
+
+  init {
+    handlerThread.start()
+    handlerReadThread.start()
+
+    handler = Handler(handlerThread.looper)
+    handlerRead = Handler(handlerReadThread.looper)
+
+    handler.post {
+      try {
+        socket.connect()
+      } catch (e: Exception) {
+        println("Failed to connect: $e")
+        // TODO: should notify errors back to Flutter
+        handlerThread.quit()
+        handlerReadThread.quit()
+        return@post
+      }
+      openedCallback()
+      read()
+    }
+  }
+
+  fun write(data: ByteArray) {
+    handler.post {
+      socket.outputStream.write(data)
+    }
+  }
+
+  fun close() {
+    handlerThread.quit()
+    handlerReadThread.quit()
+    socket.close()
+    closedCallback()
+  }
+
+
+  private fun read() {
+    handlerRead.post {
+      val data = ByteArray(8192)
+
+      while (socket.isConnected) {
+        val bytesRead = socket.inputStream.read(data)
+        if (bytesRead != -1) {
+          streamCallback(data.copyOfRange(0, bytesRead))
+        }
+      }
     }
   }
 }

@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:typed_data';
+
 class BlueConnectionState {
   static const disconnected = BlueConnectionState._('disconnected');
   static const connected = BlueConnectionState._('connected');
@@ -35,4 +38,39 @@ class BleOutputProperty {
   final String value;
 
   const BleOutputProperty._(this.value);
+}
+
+class BleL2capSocket {
+  BleL2capSocket({
+    required this.sink,
+    required this.stream,
+  });
+
+  final EventSink<Uint8List> sink;
+  final Stream<Uint8List> stream;
+}
+
+sealed class BleL2CapSocketEvent {
+  BleL2CapSocketEvent({
+    required this.deviceId,
+  });
+
+  final String deviceId;
+}
+
+class BleL2CapSocketEventOpened extends BleL2CapSocketEvent {
+  BleL2CapSocketEventOpened({required super.deviceId});
+}
+
+class BleL2CapSocketEventData extends BleL2CapSocketEvent {
+  BleL2CapSocketEventData({
+    required super.deviceId,
+    required this.data,
+  });
+
+  final Uint8List data;
+}
+
+class BleL2CapSocketEventClosed extends BleL2CapSocketEvent {
+  BleL2CapSocketEventClosed({required super.deviceId});
 }

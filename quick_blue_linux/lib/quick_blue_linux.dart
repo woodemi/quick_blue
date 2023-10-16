@@ -111,6 +111,12 @@ class QuickBlueLinux extends QuickBluePlatform {
     // TODO: implement requestMtu
     throw UnimplementedError();
   }
+
+  @override
+  Future<BleL2capSocket> openL2cap(String deviceId, int psm) {
+    // TODO: implement openL2cap
+    throw UnimplementedError();
+  }
 }
 
 extension BlueZDeviceExtension on BlueZDevice {
