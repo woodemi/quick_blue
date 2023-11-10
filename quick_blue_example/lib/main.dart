@@ -9,6 +9,9 @@ import 'package:quick_blue/quick_blue.dart';
 import 'PeripheralDetailPage.dart';
 
 void main() {
+  Logger.root.onRecord.listen((r) {
+    print(r.loggerName + ' ' + r.level.name + ' ' + r.message);
+  });
   runApp(MyApp());
 }
 
@@ -49,33 +52,23 @@ class _MyAppState extends State<MyApp> {
             title: const Text('Plugin example app'),
           ),
           body: Builder(
-            builder: (context) {
-              Timer(
-                  Duration(milliseconds: 1),
-                  () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            PeripheralDetailPage("00:18:DA:0C:79:0C"),
-                      )));
-              return Column(
-                children: [
-                  FutureBuilder(
-                    future: QuickBlue.isBluetoothAvailable(),
-                    builder: (context, snapshot) {
-                      var available = snapshot.data?.toString() ?? '...';
-                      return Text('Bluetooth init: $available');
-                    },
-                  ),
-                  _buildButtons(),
-                  Divider(
-                    color: Colors.blue,
-                  ),
-                  _buildListView(),
-                  _buildPermissionWarning(),
-                ],
-              );
-            },
+            builder: (context) => Column(
+              children: [
+                FutureBuilder(
+                  future: QuickBlue.isBluetoothAvailable(),
+                  builder: (context, snapshot) {
+                    var available = snapshot.data?.toString() ?? '...';
+                    return Text('Bluetooth init: $available');
+                  },
+                ),
+                _buildButtons(),
+                Divider(
+                  color: Colors.blue,
+                ),
+                _buildListView(),
+                _buildPermissionWarning(),
+              ],
+            ),
           ),
         ));
   }
@@ -85,17 +78,8 @@ class _MyAppState extends State<MyApp> {
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: <Widget>[
         ElevatedButton(
-          child: Text('startScan'),
-          onPressed: () {
-            QuickBlue.startScan();
-          },
-        ),
-        ElevatedButton(
-          child: Text('stopScan'),
-          onPressed: () {
-            QuickBlue.stopScan();
-          },
-        ),
+            child: Text('startScan'), onPressed: QuickBlue.startScan),
+        ElevatedButton(child: Text('stopScan'), onPressed: QuickBlue.stopScan),
       ],
     );
   }

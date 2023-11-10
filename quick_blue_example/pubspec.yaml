@@ -6,7 +6,7 @@ description: Demonstrates how to use the quick_blue plugin.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
 environment:
-  sdk: ">=2.13.0 <3.0.0"
+  sdk: ">=3.0.0 <4.0.0"
   flutter: ">=2.2.0"
 
 dependencies:

@@ -1,3 +1,4 @@
+import 'dart:collection';
 import 'dart:typed_data';
 
 import 'package:convert/convert.dart';
@@ -26,7 +27,6 @@ class PeripheralDetailPage extends StatefulWidget {
   State<StatefulWidget> createState() => _PeripheralDetailPageState();
 }
 
-
 class _PeripheralDetailPageState extends State<PeripheralDetailPage> {
   @override
   void initState() {
@@ -44,12 +44,23 @@ class _PeripheralDetailPageState extends State<PeripheralDetailPage> {
     QuickBlue.setConnectionHandler(null);
   }
 
+  String _connectedDeviceId = "";
+  String _lastConnectionState = "";
+  Queue _discoveredServices = Queue<(String, List<String>)>();
+
   void _handleConnectionChange(String deviceId, BlueConnectionState state) {
+    setState(() {
+      _connectedDeviceId = deviceId;
+      _lastConnectionState = state.toString();
+    });
     print('_handleConnectionChange $deviceId, $state');
   }
 
   void _handleServiceDiscovery(
       String deviceId, String serviceId, List<String> characteristicIds) {
+    setState(() {
+      _discoveredServices.add((serviceId, characteristicIds));
+    });
     print('_handleServiceDiscovery $deviceId, $serviceId, $characteristicIds');
   }
 
@@ -76,18 +87,20 @@ class _PeripheralDetailPageState extends State<PeripheralDetailPage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: <Widget>[
-              ElevatedButton(
-                child: Text('connect'),
-                onPressed: () {
-                  QuickBlue.connect(widget.deviceId);
-                },
-              ),
-              ElevatedButton(
-                child: Text('disconnect'),
-                onPressed: () {
-                  QuickBlue.disconnect(widget.deviceId);
-                },
-              ),
+              _lastConnectionState == "BlueConnectionState(disconnected)"
+                  ? ElevatedButton(
+                      child: Text('connect'),
+                      onPressed: () {
+                        QuickBlue.connect(widget.deviceId);
+                      },
+                    )
+                  : ElevatedButton(
+                      child: Text('disconnect'),
+                      onPressed: () {
+                        QuickBlue.disconnect(widget.deviceId);
+                      },
+                    ),
+              Text(_lastConnectionState.replaceAll("BlueConnectionState", ""))
             ],
           ),
           Row(
@@ -95,12 +108,37 @@ class _PeripheralDetailPageState extends State<PeripheralDetailPage> {
             children: <Widget>[
               ElevatedButton(
                 child: Text('discoverServices'),
-                onPressed: () {
-                  QuickBlue.discoverServices(widget.deviceId);
-                },
+                onPressed: () => QuickBlue.discoverServices(widget.deviceId),
               ),
             ],
           ),
+          Column(children: [
+            for ((String, List<String>) e in _discoveredServices)
+              ListTile(
+                  title: Row(children: [
+                Text(e.$1),
+                SizedBox(
+                  width: 15,
+                ),
+                Column(children: [
+                  for (String char in e.$2)
+                    Column(children: [
+                      Text(char),
+                      Row(
+                        children: [
+                          OutlinedButton(
+                              onPressed: () => QuickBlue.setNotifiable(
+                                  _connectedDeviceId,
+                                  e.$1,
+                                  char,
+                                  BleInputProperty.notification),
+                              child: Text("set notifiable"))
+                        ],
+                      )
+                    ])
+                ])
+              ]))
+          ]),
           ElevatedButton(
             child: Text('setNotifiable'),
             onPressed: () {
@@ -158,4 +196,3 @@ class _PeripheralDetailPageState extends State<PeripheralDetailPage> {
     );
   }
 }
-

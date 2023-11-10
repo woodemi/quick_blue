@@ -11,6 +11,8 @@ class QuickBlueLinux extends QuickBluePlatform {
 
   final BlueZClient _client = BlueZClient();
 
+  bool _valueReadTriggerActive = false;
+
   BlueZAdapter? _activeAdapter;
 
   Future<void> _ensureInitialized() async {
@@ -86,14 +88,12 @@ class QuickBlueLinux extends QuickBluePlatform {
   @override
   Stream get scanResultStream => _scanResultController.stream;
 
-  void _onDeviceAdd(BlueZDevice device) {
-    _scanResultController.add({
-      'deviceId': device.address,
-      'name': device.alias,
-      'manufacturerDataHead': device.manufacturerDataHead,
-      'rssi': device.rssi,
-    });
-  }
+  void _onDeviceAdd(BlueZDevice device) => _scanResultController.add({
+        'deviceId': device.address,
+        'name': device.alias,
+        'manufacturerDataHead': device.manufacturerDataHead,
+        'rssi': device.rssi,
+      });
 
   @override
   void connect(String deviceId, {bool? auto}) {
@@ -125,17 +125,35 @@ class QuickBlueLinux extends QuickBluePlatform {
   }
 
   BlueZGattCharacteristic? _findService(
-          String deviceId, String service, String characteristic) =>
-      _device(deviceId)
-          ?.gattServices
-          .firstWhereOrNull((s) => s.uuid.toString() == service)
-          ?.characteristics
-          .firstWhereOrNull((char) => char.uuid.toString() == characteristic);
+      String deviceId, String service, String characteristic) {
+    return _device(deviceId)
+        ?.gattServices
+        .firstWhereOrNull((s) => s.uuid.toString() == service)
+        ?.characteristics
+        .firstWhereOrNull((char) => char.uuid.toString() == characteristic);
+  }
 
   @override
   Future<void> setNotifiable(String deviceId, String service,
       String characteristic, BleInputProperty bleInputProperty) async {
     await _findService(deviceId, service, characteristic)!.startNotify();
+    _initManualRead(deviceId, service, characteristic);
+  }
+
+  _initManualRead(
+      String deviceId, String service, String characteristic) async {
+    if (_valueReadTriggerActive) return;
+    _valueReadTriggerActive = true;
+    while (true) {
+      try {
+        await readValue(deviceId, service, characteristic);
+      } catch (e) {
+        if (e.toString().contains("org.bluez.Error.Failed: Not connected")) {
+          _valueReadTriggerActive = false;
+          return;
+        }
+      }
+    }
   }
 
   @override
@@ -162,6 +180,12 @@ class QuickBlueLinux extends QuickBluePlatform {
   Future<int> requestMtu(String deviceId, int expectedMtu) async {
     _log("request mtu is not supported on linux");
     return -1;
+  }
+
+  @override
+  void requestConnectionPriority(
+      String deviceId, BleConnectionPriority priority) {
+    // TODO: implement requestConnectionPriority
   }
 }
 
