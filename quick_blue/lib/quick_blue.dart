@@ -99,4 +99,7 @@ class QuickBlue {
 
   static Future<int> requestMtu(String deviceId, int expectedMtu) =>
       _platform.requestMtu(deviceId, expectedMtu);
+
+  static void requestConnectionPriority(String deviceId, BleConnectionPriority priority) =>
+      _platform.requestConnectionPriority(deviceId, priority);
 }

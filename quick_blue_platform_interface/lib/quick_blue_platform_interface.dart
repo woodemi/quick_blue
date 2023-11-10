@@ -43,6 +43,8 @@ abstract class QuickBluePlatform extends PlatformInterface {
 
   void stopScan();
 
+  void requestConnectionPriority(String deviceId, BleConnectionPriority priority);
+
   Stream<dynamic> get scanResultStream;
 
   void connect(String deviceId, {bool? auto});

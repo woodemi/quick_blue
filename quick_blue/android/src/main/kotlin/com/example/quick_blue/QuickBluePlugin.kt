@@ -146,6 +146,14 @@ class QuickBluePlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamHand
         gatt.requestMtu(expectedMtu)
         result.success(null)
       }
+      "requestConnectionPriority" -> {
+        val deviceId = call.argument<String>("deviceId")!!
+        val priority = call.argument<Int>("priority")!!
+        val gatt = knownGatts.find { it.device.address == deviceId }
+                ?: return result.error("IllegalArgument", "Unknown deviceId: $deviceId", null)
+        gatt.requestConnectionPriority(priority)
+        result.success(null)
+      }
       "readValue" -> {
         val deviceId = call.argument<String>("deviceId")!!
         val service = call.argument<String>("service")!!
@@ -194,7 +202,6 @@ class QuickBluePlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamHand
     }
 
     override fun onScanResult(callbackType: Int, result: ScanResult) {
-      Log.v(TAG, "onScanResult: $callbackType + $result")
       scanResultSink?.success(mapOf<String, Any>(
               "name" to (result.device.name ?: ""),
               "deviceId" to result.device.address,

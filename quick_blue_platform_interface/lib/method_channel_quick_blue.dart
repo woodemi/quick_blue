@@ -173,4 +173,13 @@ class MethodChannelQuickBlue extends QuickBluePlatform {
       _method.invokeMethod('reinit');
     }
   }
+
+  @override
+  void requestConnectionPriority(
+      String deviceId, BleConnectionPriority priority) {
+    _method.invokeMethod('requestConnectionPriority', {
+      'deviceId': deviceId,
+      'priority': priority.value
+    }).then((_) => _log("requestConnectionPriority invokeMethod success"));
+  }
 }

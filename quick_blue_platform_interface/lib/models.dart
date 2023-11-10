@@ -42,3 +42,15 @@ class BleOutputProperty {
 
   const BleOutputProperty._(this.value);
 }
+
+enum BleConnectionPriority {
+  balanced,
+  high,
+  low_power;
+
+  int get value => switch (this) {
+        BleConnectionPriority.balanced => 0,
+        BleConnectionPriority.high => 1,
+        BleConnectionPriority.low_power => 2
+      };
+}
