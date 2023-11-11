@@ -54,7 +54,7 @@ class _ServiceDisplayState extends State<ServiceDisplay> {
           for (var e in _discoveredServices)
             SizedBox(
                 width: min(constraints.maxWidth, 1000),
-                height: 340,
+                height: 100 + e.$2.length * 125,
                 child: _DiscoveredServiceCard(e: e, widget: widget))
         ])
       ]);

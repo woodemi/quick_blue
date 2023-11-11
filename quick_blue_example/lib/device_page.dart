@@ -42,30 +42,32 @@ class _DevicePageState extends State<DevicePage> {
     return SafeArea(
         child: Scaffold(
             appBar: AppBar(title: Text("Device: ${widget.name}")),
-            body: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Center(
-                      child: OutlinedButton(
-                          onPressed: _toggleConnection,
-                          child:
-                              Text(_isConnected ? "disconnect" : "connect"))),
-                  if (_isConnected)
-                    SizedBox(
-                        height: 100,
-                        child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: [
-                              !_discoverServices
-                                  ? OutlinedButton(
-                                      onPressed: () => setState(
-                                          () => _discoverServices = true),
-                                      child: Text("discover services"))
-                                  : Container(),
-                              MtuRequestWidget(widget.deviceId),
-                            ].spacedWith(spacing: 20))),
-                  if (_isConnected && _discoverServices)
-                    ServiceDisplay(widget.deviceId),
-                ].padded())));
+            body: SingleChildScrollView(
+                child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Center(
+                          child: OutlinedButton(
+                              onPressed: _toggleConnection,
+                              child: Text(
+                                  _isConnected ? "disconnect" : "connect"))),
+                      if (_isConnected)
+                        SizedBox(
+                            height: 100,
+                            child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
+                                children: [
+                                  !_discoverServices
+                                      ? OutlinedButton(
+                                          onPressed: () => setState(
+                                              () => _discoverServices = true),
+                                          child: Text("discover services"))
+                                      : Container(),
+                                  MtuRequestWidget(widget.deviceId),
+                                ].spacedWith(spacing: 20))),
+                      if (_isConnected && _discoverServices)
+                        ServiceDisplay(widget.deviceId),
+                    ].padded()))));
   }
 }
