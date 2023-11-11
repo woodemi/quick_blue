@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:bluez/bluez.dart';
@@ -138,6 +139,19 @@ class QuickBlueLinux extends QuickBluePlatform {
       String characteristic, BleInputProperty bleInputProperty) async {
     await _findService(deviceId, service, characteristic)!.startNotify();
     _initManualRead(deviceId, service, characteristic);
+    /*
+    _client.devices
+        .firstWhere((e) => e.address == deviceId)
+        .gattServices
+        .firstWhereOrNull((e) => e == service)
+        ?.characteristics
+        .firstWhereOrNull((e) => e == characteristic)
+        ?.acquireNotify()
+        .then((v) => v.socket.forEach((event) {
+              if (event == RawSocketEvent.read)
+                onValueChanged?.call(service, characteristic, v.socket.read()!);
+            }));
+        */
   }
 
   _initManualRead(
@@ -158,13 +172,13 @@ class QuickBlueLinux extends QuickBluePlatform {
 
   @override
   Future<void> readValue(
-      String deviceId, String service, String characteristic) async {
-    final val =
-        await _findService(deviceId, service, characteristic)!.readValue();
-    if (onValueChanged != null) {
-      onValueChanged!(service, characteristic, Uint8List.fromList(val));
-    }
-  }
+          String deviceId, String service, String characteristic) async =>
+      onValueChanged?.call(
+          service,
+          characteristic,
+          Uint8List.fromList(
+              await _findService(deviceId, service, characteristic)!
+                  .readValue()));
 
   @override
   Future<void> writeValue(
