@@ -12,4 +12,38 @@ command:
     runPubGetInParallel: true
     usePubspecOverrides: true
     dependencies:
+      quick_blue:
+        git:
+          url: https://github.com/MinkTec/quick_blue
+          path: quick_blue
+      quick_blue_platform_interface:
+        git:
+          url: https://github.com/MinkTec/quick_blue
+          path: quick_blue_platform_interface
+      quick_blue_windows:
+        git:
+          url: https://github.com/MinkTec/quick_blue
+          path: quick_blue_windows
+      quick_blue_macos:
+        git:
+          url: https://github.com/MinkTec/quick_blue
+          path: quick_blue_macos
+      quick_blue_linux:
+        git:
+          url: https://github.com/MinkTec/quick_blue
+          path: quick_blue_linux
+
       equatable: ^2.0.5
+      bluez: ^0.8.1
+      collection: ^1.15.0
+      logging: ^1.0.2
+  scripts:
+    analyze: melos exec -- flutter analyze
+    format: melos exec -- dart format .
+    get: melos exec -- flutter pub get
+    unittest:
+      run: melos exec -- flutter test
+      select-package:
+        dir-exists:
+          - test
+        scope: "*interface*"
