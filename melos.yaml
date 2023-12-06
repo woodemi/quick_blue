@@ -1,0 +1,15 @@
+name: quick_blue
+repository: https://github.com/MinkTec/quick_blue.git
+
+packages:
+  - ./*
+
+command:
+  environment:
+    sdk: ">=3.0.0 <4.0.0"
+    flutter: ">=3.0.0 <4.0.0"
+  bootstrap:
+    runPubGetInParallel: true
+    usePubspecOverrides: true
+    dependencies:
+      equatable: ^2.0.5
