@@ -80,7 +80,7 @@ class MethodChannelQuickBlue extends QuickBluePlatform {
       if (message['ServiceState'] == 'discovered') {
         String deviceId = message['deviceId'];
         String service = message['service'];
-        List<String> characteristics = (message['characteristics'] as List).cast();
+        List<String>? characteristics = message['characteristics'];
         onServiceDiscovered?.call(deviceId, service, characteristics);
       }
     } else if (message['characteristicValue'] != null) {
