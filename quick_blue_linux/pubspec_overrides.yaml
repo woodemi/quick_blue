@@ -1,4 +1,0 @@
-# melos_managed_dependency_overrides: quick_blue_platform_interface
-dependency_overrides:
-  quick_blue_platform_interface:
-    path: ../quick_blue_platform_interface
