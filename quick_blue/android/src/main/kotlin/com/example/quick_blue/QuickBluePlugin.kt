@@ -146,7 +146,7 @@ class QuickBluePlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamHand
         gatt.requestMtu(expectedMtu)
         result.success(null)
       }
-      "requestConnectionPriority" -> {
+      "requestLatency" -> {
         val deviceId = call.argument<String>("deviceId")!!
         val priority = call.argument<Int>("priority")!!
         val gatt = knownGatts.find { it.device.address == deviceId }

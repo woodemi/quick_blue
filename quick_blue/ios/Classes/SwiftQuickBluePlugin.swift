@@ -125,6 +125,18 @@ public class SwiftQuickBluePlugin: NSObject, FlutterPlugin {
 		  let mtu = peripheral.maximumWriteValueLength(for: .withoutResponse)
 		  print("peripheral.maximumWriteValueLengthForType:CBCharacteristicWriteWithoutResponse \(mtu)")
 		  messageConnector.sendMessage(["mtuConfig": mtu + GATT_HEADER_LENGTH])
+	  case "requestLatency":
+		  let arguments = call.arguments as! Dictionary<String, Any>
+		  let deviceId = arguments["deviceId"] as! String
+		  guard let peripheral = discoveredPeripherals[deviceId] else {
+			  result(FlutterError(code: "IllegalArgument", message: "Unknown deviceId:\(deviceId)", details: nil))
+			  return
+		  }
+		  result(nil)
+      let requestedLatency = arguments["latency"] as! Int;
+		  let latency = peripheral.setDesiredConnectionLatency(latencyFromInt(requestedLatency) , for: .withoutResponse)
+		  print("peripheral.maximumWriteValueLengthForType:CBCharacteristicWriteWithoutResponse \(mtu)")
+		  messageConnector.sendMessage(["mtuConfig": mtu + GATT_HEADER_LENGTH])
 	  case "readValue":
 		  let arguments = call.arguments as! Dictionary<String, Any>
 		  let deviceId = arguments["deviceId"] as! String
@@ -159,6 +171,19 @@ public class SwiftQuickBluePlugin: NSObject, FlutterPlugin {
     default:
       result(FlutterMethodNotImplemented)
     }
+  }
+}
+
+func latencyFromInt(_ latency: Int) -> CBPeripheralManagerConnectionLatency {
+  switch latency {
+  case 0:
+    return .low
+  case 1:
+    return .medium
+  case 2:
+    return .high
+  default:
+    return .low
   }
 }
 

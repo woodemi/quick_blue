@@ -197,9 +197,8 @@ class QuickBlueLinux extends QuickBluePlatform {
   }
 
   @override
-  void requestConnectionPriority(
-      String deviceId, BleConnectionPriority priority) {
-    // TODO: implement requestConnectionPriority
+  void requestLatency(String deviceId, BlePackageLatency priority) {
+    _log("request latency is not supported on linux");
   }
 }
 
