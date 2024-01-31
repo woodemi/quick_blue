@@ -110,6 +110,8 @@ class MethodChannelQuickBlue extends QuickBluePlatform {
       onValueChanged?.call(deviceId, characteristic, value);
     } else if (message['mtuConfig'] != null) {
       _mtuConfigController.add(message['mtuConfig']);
+    } else if (message['type'] == "rssiValue") {
+      onRssiRead?.call(message['deviceId'], message["rssi"]);
     }
   }
 
@@ -165,6 +167,10 @@ class MethodChannelQuickBlue extends QuickBluePlatform {
       'expectedMtu': expectedMtu,
     }).then((_) => _log('requestMtu invokeMethod success'));
     return await _mtuConfigController.stream.first;
+  }
+
+  Future<void> readRssi(String deviceId) async {
+    await _method.invokeMethod('readRssi', {'deviceId': deviceId});
   }
 
   @override

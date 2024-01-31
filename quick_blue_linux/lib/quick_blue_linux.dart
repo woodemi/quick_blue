@@ -197,6 +197,11 @@ class QuickBlueLinux extends QuickBluePlatform {
   }
 
   @override
+  Future<void> readRssi(String deviceId) async {
+    onRssiRead?.call(deviceId, _device(deviceId)!.rssi);
+  }
+
+  @override
   void requestLatency(String deviceId, BlePackageLatency priority) {
     _log("request latency is not supported on linux");
   }

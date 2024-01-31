@@ -53,8 +53,8 @@ class _ServiceDisplayState extends State<ServiceDisplay> {
         Column(children: [
           for (var e in _discoveredServices)
             SizedBox(
-                width: min(constraints.maxWidth, 1000),
-                height: 100 + e.$2.length * 125,
+                //width: min(constraints.maxWidth, 1000),
+                //height: 100 + e.$2.length * 125,
                 child: _DiscoveredServiceCard(e: e, widget: widget))
         ])
       ]);
@@ -64,7 +64,6 @@ class _ServiceDisplayState extends State<ServiceDisplay> {
 
 class _DiscoveredServiceCard extends StatefulWidget {
   _DiscoveredServiceCard({
-    super.key,
     required this.e,
     required this.widget,
   });
@@ -84,56 +83,66 @@ class _DiscoveredServiceCardState extends State<_DiscoveredServiceCard> {
   @override
   Widget build(BuildContext context) {
     return Card(
-        child: Row(
-            children: [
-      Column(children: [
-        Expanded(child: Text(widget.e.$1)),
-        Expanded(flex: 3, child: DataDisplay(widget.widget.deviceId))
+        child: Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Column(children: [
+        Column(children: [
+          Text(widget.e.$1,
+              textScaler: TextScaler.linear(1.2),
+              style: TextStyle(fontWeight: FontWeight.w600)),
+          DataDisplay(widget.widget.deviceId)
+        ]),
+        Divider(thickness: 3, indent: 15, endIndent: 15),
+        Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+          for (var c in widget.e.$2)
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(c),
+                Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      OutlinedButton(
+                          onPressed: () => QuickBlue.writeValue(
+                              widget.widget.deviceId,
+                              widget.e.$1,
+                              c,
+                              _commandBytes,
+                              BleOutputProperty.withoutResponse),
+                          child: Text("write value")),
+                      OutlinedButton(
+                          onPressed: () => QuickBlue.setNotifiable(
+                              widget.widget.deviceId,
+                              widget.e.$1,
+                              c,
+                              BleInputProperty.notification),
+                          child: Text("set notifiable")),
+                    ]),
+                SizedBox(height: 12)
+              ],
+            ),
+          Column(children: [
+            SizedBox(
+                height: 50,
+                width: MediaQuery.of(context).size.width * 0.5,
+                child: TextField(
+                  controller: _controller,
+                  onChanged: (value) {
+                    setState(() {
+                      _commandBytes = Uint8List.fromList(value
+                          .split(RegExp(r'[ ,]'))
+                          .where((s) => s.isNotEmpty)
+                          .map(int.parse)
+                          .toList());
+                      // Now you can use intList
+                    });
+                  },
+                )),
+            Text("command bytes: ${_commandBytes.toString()}")
+          ]),
+          SizedBox(height: 12),
+        ])
       ]),
-      Column(
-          children: [
-        for (var c in widget.e.$2)
-          Column(
-            children: [
-              Text(c),
-              Row(
-                  children: [
-                OutlinedButton(
-                    onPressed: () => QuickBlue.writeValue(
-                        widget.widget.deviceId,
-                        widget.e.$1,
-                        c,
-                        _commandBytes,
-                        BleOutputProperty.withoutResponse),
-                    child: Text("write value")),
-                OutlinedButton(
-                    onPressed: () => QuickBlue.setNotifiable(
-                        widget.widget.deviceId,
-                        widget.e.$1,
-                        c,
-                        BleInputProperty.notification),
-                    child: Text("set notifiable"))
-              ].spacedWith()),
-            ].spaced(),
-          ),
-        Row(
-            children: [
-          TextField(
-            controller: _controller,
-            onChanged: (value) {
-              setState(() {
-                _commandBytes = Uint8List.fromList(value
-                    .split(RegExp(r'[ ,]'))
-                    .where((s) => s.isNotEmpty)
-                    .map(int.parse)
-                    .toList());
-                // Now you can use intList
-              });
-            },
-          ),
-          Text("command bytes: ${_commandBytes.toString()}")
-        ].spaced()),
-      ].spacedWith())
-    ].spacedWith()));
+    ));
   }
 }

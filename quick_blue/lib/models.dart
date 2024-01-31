@@ -27,4 +27,15 @@ class BlueScanResult {
         'manufacturerData': _manufacturerData,
         'rssi': rssi,
       };
+
+  @override
+  int get hashCode => _xor(name.codeUnits) ^ _xor(deviceId.codeUnits);
+
+  @override
+  bool operator ==(Object other) =>
+      other is BlueScanResult &&
+      this.name == other.name &&
+      this.deviceId == other.deviceId;
 }
+
+int _xor(List<int> a) => a.reduce((a, b) => a ^ b);

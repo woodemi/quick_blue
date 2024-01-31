@@ -18,6 +18,8 @@ typedef OnConnectionChanged = void Function(
 typedef OnServiceDiscovered = void Function(
     String deviceId, String serviceId, List<String> characteristicIds);
 
+typedef OnRssiRead = void Function(String deviceId, int rssi);
+
 typedef OnValueChanged = void Function(
     String deviceId, String characteristicId, Uint8List value);
 
@@ -59,6 +61,8 @@ abstract class QuickBluePlatform extends PlatformInterface {
 
   OnServiceDiscovered? onServiceDiscovered;
 
+  OnRssiRead? onRssiRead;
+
   Future<void> setNotifiable(String deviceId, String service,
       String characteristic, BleInputProperty bleInputProperty);
 
@@ -73,6 +77,8 @@ abstract class QuickBluePlatform extends PlatformInterface {
       String characteristic,
       Uint8List value,
       BleOutputProperty bleOutputProperty);
+
+  Future<void> readRssi(String deviceId);
 
   Future<int> requestMtu(String deviceId, int expectedMtu);
 }

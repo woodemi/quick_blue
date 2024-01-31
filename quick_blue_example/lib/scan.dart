@@ -16,7 +16,16 @@ class ScanResultList extends StatelessWidget {
       stream: QuickBlue.scanResultStream, builder: _resultListBuilder);
 
   Widget _resultListBuilder(BuildContext context, Queue<BlueScanResult> elem) {
-    var sorted = elem.toList();
+    Set<String> foundIds = {};
+    Queue<BlueScanResult> filteredDevices = Queue();
+    for (var e in elem) {
+      if (!foundIds.contains(e.deviceId)) {
+        filteredDevices.add(e);
+        foundIds.add(e.deviceId);
+      }
+    }
+
+    var sorted = filteredDevices.toList();
     sorted.sort((a, b) => b.rssi.compareTo(a.rssi));
     return LayoutBuilder(
         builder: (context, constraints) => SizedBox(

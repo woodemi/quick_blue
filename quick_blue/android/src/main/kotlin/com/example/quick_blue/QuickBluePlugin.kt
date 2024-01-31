@@ -154,6 +154,14 @@ class QuickBluePlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamHand
         gatt.requestConnectionPriority(priority)
         result.success(null)
       }
+      "readRssi" -> {
+        val deviceId = call.argument<String>("deviceId")!!
+        val gatt = knownGatts.find { it.device.address == deviceId }
+                ?: return result.error("IllegalArgument", "Unknown deviceId: $deviceId", null)
+        val rssi = gatt.readRemoteRssi()
+        result.success(rssi);
+        
+      }
       "readValue" -> {
         val deviceId = call.argument<String>("deviceId")!!
         val service = call.argument<String>("service")!!
@@ -247,6 +255,18 @@ class QuickBluePlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamHand
         ))
       }
     }
+
+  override fun onReadRemoteRssi(gatt : BluetoothGatt, rssi : Int, status : Int){
+    if (status == BluetoothGatt.GATT_SUCCESS) {
+      Log.d(TAG, String.format("BluetoothGatt ReadRssi[%d]", rssi));
+    }
+    sendMessage(messageConnector, mapOf(
+      "deviceId" to gatt.device.address,
+      "type" to "rssiValue",
+      "rssi" to rssi,
+      "statis" to status
+    ))
+  }
 
     override fun onServicesDiscovered(gatt: BluetoothGatt, status: Int) {
       Log.v(TAG, "onServicesDiscovered ${gatt.device.address} $status")

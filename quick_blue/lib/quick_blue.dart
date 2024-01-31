@@ -64,6 +64,10 @@ class QuickBlue {
   static void setServiceHandler(OnServiceDiscovered? onServiceDiscovered) =>
       _platform.onServiceDiscovered = onServiceDiscovered;
 
+  static void setRssiHandler(OnRssiRead? onRssiRead) {
+    _platform.onRssiRead = onRssiRead;
+  }
+
   static Future<void> setNotifiable(String deviceId, String service,
       String characteristic, BleInputProperty bleInputProperty) {
     return _platform.setNotifiable(
@@ -91,6 +95,8 @@ class QuickBlue {
 
   static Future<int> requestMtu(String deviceId, int expectedMtu) =>
       _platform.requestMtu(deviceId, expectedMtu);
+
+  static Future<void> readRssi(String deviceId) => _platform.readRssi(deviceId);
 
   /// set the interval between ble packages
   /// The behaviour can vary from platfrom to platform
