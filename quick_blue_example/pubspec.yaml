@@ -15,11 +15,12 @@ dependencies:
 
   quick_blue:
     git:
-      url: https://github.com/MinkTec/quick_blue
+      url: git@github.com:MinkTec/quick_blue.git
+      ref: HEAD
       path: quick_blue
   cupertino_icons: ^1.0.0
   convert: ^3.0.0
-  logging: ^1.0.2
+  logging: ^1.2.0
 
 dev_dependencies:
   flutter_test:

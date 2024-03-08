@@ -51,9 +51,9 @@ abstract class QuickBluePlatform extends PlatformInterface {
 
   Stream<dynamic> get scanResultStream;
 
-  void connect(String deviceId, {bool? auto});
+  Future<void> connect(String deviceId, {bool? auto});
 
-  void disconnect(String deviceId);
+  Future<void> disconnect(String deviceId);
 
   OnConnectionChanged? onConnectionChanged;
 

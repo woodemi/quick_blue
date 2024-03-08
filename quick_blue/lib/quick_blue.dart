@@ -50,10 +50,12 @@ class QuickBlue {
   static Stream<BlueScanResult> get scanResultStream =>
       _platform.scanResultStream.map((item) => BlueScanResult.fromMap(item));
 
-  static void connect(String deviceId, {bool? auto}) =>
-      _platform.connect(deviceId, auto: auto);
+  static Future<void> connect(String deviceId, {bool? auto}) {
+    return _platform.connect(deviceId, auto: auto);
+  }
 
-  static void disconnect(String deviceId) => _platform.disconnect(deviceId);
+  static Future<void> disconnect(String deviceId) =>
+      _platform.disconnect(deviceId);
 
   static void setConnectionHandler(OnConnectionChanged? onConnectionChanged) =>
       _platform.onConnectionChanged = onConnectionChanged;

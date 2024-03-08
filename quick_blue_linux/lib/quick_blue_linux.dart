@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:bluez/bluez.dart';
@@ -97,8 +96,8 @@ class QuickBlueLinux extends QuickBluePlatform {
       });
 
   @override
-  void connect(String deviceId, {bool? auto}) {
-    _device(deviceId)!.connect().whenComplete(() {
+  Future<void> connect(String deviceId, {bool? auto}) {
+    return _device(deviceId)!.connect().whenComplete(() {
       if (onConnectionChanged != null) {
         onConnectionChanged!(deviceId, BlueConnectionState.connected);
       }
@@ -107,8 +106,8 @@ class QuickBlueLinux extends QuickBluePlatform {
   }
 
   @override
-  void disconnect(String deviceId) {
-    _device(deviceId)!.disconnect().whenComplete(() {
+  Future<void> disconnect(String deviceId) {
+    return _device(deviceId)!.disconnect().whenComplete(() {
       if (onConnectionChanged != null) {
         onConnectionChanged!(deviceId, BlueConnectionState.disconnected);
       }

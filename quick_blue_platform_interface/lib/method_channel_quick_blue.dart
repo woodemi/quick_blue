@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:logging/logging.dart';
 
@@ -35,15 +36,15 @@ class MethodChannelQuickBlue extends QuickBluePlatform {
   }
 
   @override
-  void startScan() {
-    _method
+  Future<void> startScan() {
+    return _method
         .invokeMethod('startScan')
         .then((_) => print('startScan invokeMethod success'));
   }
 
   @override
-  void stopScan() {
-    _method
+  Future<void> stopScan() {
+    return _method
         .invokeMethod('stopScan')
         .then((_) => print('stopScan invokeMethod success'));
   }
@@ -55,13 +56,13 @@ class MethodChannelQuickBlue extends QuickBluePlatform {
   Stream<dynamic> get scanResultStream => _scanResultStream;
 
   @override
-  void connect(String deviceId, {bool? auto}) {
+  Future<void> connect(String deviceId, {bool? auto}) {
     if (Platform.isAndroid && auto != null && auto) {
-      _method.invokeMethod('autoConnect', {
+      return _method.invokeMethod('autoConnect', {
         'deviceId': deviceId,
       }).then((_) => _log('connect invokeMethod success'));
     } else {
-      _method.invokeMethod('connect', {
+      return _method.invokeMethod('connect', {
         'deviceId': deviceId,
       }).then((_) => _log('connect invokeMethod success'));
     }
@@ -74,8 +75,8 @@ class MethodChannelQuickBlue extends QuickBluePlatform {
   }
 
   @override
-  void disconnect(String deviceId) {
-    _method.invokeMethod('disconnect', {
+  Future<void> disconnect(String deviceId) {
+    return _method.invokeMethod('disconnect', {
       'deviceId': deviceId,
     }).then((_) => _log('disconnect invokeMethod success'));
   }

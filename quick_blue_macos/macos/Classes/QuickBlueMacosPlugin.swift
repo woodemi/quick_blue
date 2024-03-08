@@ -115,6 +115,15 @@ public class QuickBlueMacosPlugin: NSObject, FlutterPlugin {
       }
       peripheral.setNotifiable(bleInputProperty, for: characteristic, of: service)
       result(nil)
+    case "readRssi":
+        let arguments = call.arguments as! Dictionary<String, Any>
+        let deviceId = arguments["deviceId"] as! String
+        guard let peripheral = discoveredPeripherals[deviceId] else {
+          result(FlutterError(code: "IllegalArgument", message: "Unknown deviceId:\(deviceId)", details: nil))
+            return
+        }
+        peripheral.readRSSI()
+        result(nil)
     case "requestMtu":
       let arguments = call.arguments as! Dictionary<String, Any>
       let deviceId = arguments["deviceId"] as! String
@@ -241,6 +250,15 @@ extension QuickBlueMacosPlugin: CBPeripheralDelegate {
       "ServiceState": "discovered",
       "service": service.uuid.uuidStr,
       "characteristics": service.characteristics!.map { $0.uuid.uuidStr }
+    ])
+  }
+
+    public func peripheral(_ peripheral: CBPeripheral, didReadRSSI RSSI: NSNumber, error: Error?) {
+    print("peripheral:didReadRSSI (\(RSSI))")
+    self.messageConnector.sendMessage([
+      "deviceId": peripheral.uuid.uuidString,
+      "type": "rssiValue",
+      "rssi": RSSI
     ])
   }
 
