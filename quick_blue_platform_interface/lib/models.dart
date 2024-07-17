@@ -4,9 +4,11 @@ import 'dart:typed_data';
 class ScanFilter {
   const ScanFilter({
     this.serviceUuids = const [],
+    this.manufacturerData,
   });
 
   final List<String> serviceUuids;
+  final Map<int, Uint8List>? manufacturerData;
 }
 
 class BlueConnectionState {

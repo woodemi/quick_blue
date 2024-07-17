@@ -70,10 +70,17 @@ class QuickBluePlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamHand
       }
       "startScan" -> {
         val filterServiceUuids = call.argument<List<String>>("serviceUuids")
+        val filterManufacturerData = call.argument<Map<Int, ByteArray>>("manufacturerData")
+
         val filters = filterServiceUuids?.map {
-          ScanFilter.Builder()
+          val builder = ScanFilter.Builder()
             .setServiceUuid(ParcelUuid.fromString(it))
-            .build()
+          if (filterManufacturerData != null) {
+            val manufacturerId = filterManufacturerData.keys.first()
+            val manufacturerData = filterManufacturerData[id]
+            builder.setManufacturerData(manufacturerId, manufacturerData)
+          }
+          builder.build()
         }
         val settings = ScanSettings.Builder()
           .setCallbackType(ScanSettings.CALLBACK_TYPE_ALL_MATCHES)

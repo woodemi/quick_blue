@@ -33,6 +33,7 @@ class MethodChannelQuickBlue extends QuickBluePlatform {
   }) {
     return _method.invokeMethod('startScan', {
       'serviceUuids': scanFilter.serviceUuids,
+      'manufacturerData': scanFilter.manufacturerData,
     });
   }
 
